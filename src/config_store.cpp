@@ -8,17 +8,17 @@
 using hla::ConfigStore;
 using hla::WifiInfo;
 
-static constexpr const char* WIFI_INFO_FILE = "/config/wifi_info.json";
+static constexpr const char* kWifiInfoFile = "/config/wifi_info.json";
 
 void ConfigStore::LoadWifiInfo(WifiInfo& wifiInfo) {
-    File file = LittleFS.open(WIFI_INFO_FILE, "r");
+    File file = LittleFS.open(kWifiInfoFile, "r");
     if (!file) {
-        Serial.printf("Failed to open %s file.\n", WIFI_INFO_FILE);
+        Serial.printf("Failed to open %s file.\n", kWifiInfoFile);
         return;
     }
     JsonDocument doc;
     if (deserializeJson(doc, file))
-        Serial.printf("Failed to read %s file.\n", WIFI_INFO_FILE);
+        Serial.printf("Failed to read %s file.\n", kWifiInfoFile);
     file.close();
     wifiInfo.SetHostname(doc["hostname"]);
     wifiInfo.SetSSID(doc["SSID"]);
@@ -28,7 +28,7 @@ void ConfigStore::LoadWifiInfo(WifiInfo& wifiInfo) {
 void ConfigStore::SaveWifiInfo(const WifiInfo& wifiInfo) {
     String messageBuffer;
     serializeJson(wifiInfo.ToJson(), messageBuffer);
-    File file = LittleFS.open(WIFI_INFO_FILE, "w");
+    File file = LittleFS.open(kWifiInfoFile, "w");
     file.print(messageBuffer);
     file.close();
 }
