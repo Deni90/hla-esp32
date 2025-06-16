@@ -126,4 +126,8 @@ void setup() {
     Serial.printf("Hostname:  %s\n\n", wi.GetHostname().c_str());
 }
 
-void loop() {}
+void loop() {
+    if (gIsApMode) {
+        gDnsServer.processNextRequest();
+    }
+}
