@@ -167,7 +167,139 @@ input[type="text"]:disabled {
     width: 69%;
 }
 
+.select {
+    /* -webkit-appearance: none;
+    appearance: none; */
+    width: 70%;
+    height: 2.5em;
+    cursor: pointer;
+    padding-left: 1em;
+    background-color: white;
+    color: #333333;
+    text-shadow: 0 0px 0 #f3f3f3;
+    font-size: 1em;
+    font-family: sans-serif;
+    font-weight: bold;
+    line-height: 1.3;
+    border-color: #dddddd;
+    border-style: solid;
+    border-width: 1px;
+    border-radius: .5em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+.select:hover {
+    background-color: #ededed;
+}
+
+.select:active {
+    background-color: #9B7EBD;
+    color: #ffffff;
+}
+
 .log {
     padding-top: 1em;
     width: 100%;
+}
+
+.sub-tab {
+    width: 100%;
+    height: 2.5em;
+    display: flex;
+    overflow: hidden;
+    background-color: #dddddd;
+    border-radius: .7em;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #dddddd;
+    margin-bottom: 1.5em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+.sub-tab button {
+    padding: .7em 1em;
+    cursor: pointer;
+    background-color: #f9f9f9;
+    color: #333333;
+    text-shadow: 0 1px 0 #f3f3f3;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.3;
+    border-width: 0.5px;
+    border-style: solid;
+    border-color: #dddddd;
+    letter-spacing: 0.5px;
+}
+
+.sub-tab button:hover {
+    background-color: #ededed;
+}
+
+.sub-tab button.active {
+    background-color: #9B7EBD;
+    text-shadow: 0 0px 0 #005599;
+    border-color: #7ea689;
+    color: #ffffff;
+}
+
+.liftplan-table {
+    margin: 0 0 0.5em 0;
+}
+
+.liftplan-table td {
+    width: 2em;
+    height: 2em;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #dddddd;
+    border-radius: .3125em;
+    cursor: pointer;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+
+.liftplan-table .lifted {
+    background-color: #000;
+}
+
+.liftplan-table .lifted-disabled {
+    background-color: #333333;
+}
+
+.buttons-container {
+    display: flex;
+    /* width: 70%; */
+    float: right;
+    margin: 0.5em 0 0.5em 0;
+    column-gap: 0.5em;
+}
+
+.delete-button {
+    width: 100%;
+    margin: .5em 0;
+    padding: .7em 1em;
+    background-color: #DA6C6C;
+    cursor: pointer;
+    border-width: 1px;
+    border-color: #dddddd;
+    border-style: solid;
+    border-radius: .3125em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+    color: #ffffff;
+    font-size: 1.2em;
+    text-align: center;
+    font-weight: bold;
+    font-family: sans-serif;
+    text-shadow: 0 0px 0 #f3f3f3;
+    line-height: 1.3;
+}
+
+.delete-button:hover {
+    background-color: #CD5656;
+}
+
+.delete-button:active {
+    background-color: #AF3E3E;
 }

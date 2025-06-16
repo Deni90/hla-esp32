@@ -10,10 +10,70 @@
 
 <body>
 	<div class="header">
-		<h1 class="title">Handloom automation<br/>Control panel</h1>
+		<h1 class="title">Handloom automation<br />Control panel</h1>
 	</div>
 	<div id="mainTab" class="main-tab">
+		<button id="mainTabButtonLiftplan" onclick="openTab('mainTab', 'Liftplan')">Liftplan editor</button>
 		<button class="tablinks" id="mainTabButtonSettings" onclick="openTab('mainTab', 'Settings')">Settings</button>
+	</div>
+
+	<!-- Liftplans tab -->
+	<div id="mainTabLiftplan" class="main-tabcontent">
+		<h2>Liftplan editor</h2>
+		<div id="liftplanTab" class="sub-tab">
+			<button id="liftplanTabButtonCreateNew" onclick="openLiftplanTab('liftplanTab', 'CreateNew')">Create
+				new</button>
+			<button id="liftplanTabButtonManageExisting"
+				onclick="openLiftplanTab('liftplanTab', 'ManageExisting')">Manage existing</button>
+		</div>
+		<!-- Create new -->
+		<div id="liftplanTabCreateNew" class="tabcontent">
+			<div class="field-container">
+				<label for="liftplanName">Liftplan name:</label>
+				<input type="text" name="liftplanName" id="liftplanName" value="" />
+			</div>
+			<div class="field-container">
+				<label for="liftplanControls">Controls:</label>
+				<div class="buttons-container">
+					<div>
+						<button class="button" onclick="liftplanEditableTable.addRow()">+</button>
+					</div>
+					<div>
+						<button class="button" onclick="liftplanEditableTable.removeLastRow()">-</button>
+					</div>
+					<div>
+						<button class="button" onclick="liftplanEditableTable.clearTable()">Clear</button>
+					</div>
+				</div>
+			</div>
+			<div class="field-container-no-height">
+				<label for="liftplan-table">Liftplan:</label>
+				<table id="liftplanEditableTable" class="liftplan-table"></table>
+			</div>
+			<div class="field-container">
+				<button class="button" name="buttonSaveLiftplan"
+					onclick="saveLiftplan(liftplanEditableTable)">Save</button>
+			</div>
+			<div class="field-container">
+				<label class="log" id="liftplanEditorLog"></label>
+			</div>
+		</div>
+		<!-- Manage existing -->
+		<div id="liftplanTabManageExisting" class="tabcontent">
+			<div class="field-container">
+				<label for="liftplanList">Liftplan(s):</label>
+				<select class="select" name="selectLiftplan" id="selectLiftplan" onchange="updatePreviewSelect()">
+				</select>
+			</div>
+			<div class="field-container-no-height" id="previewContainer">
+				<label for="liftplan-table">Liftplan preview:</label>
+				<table id="liftplanPreviewTable" class="liftplan-table"></table>
+			</div>
+			<div class="field-container">
+				<button class="delete-button" name="buttonDeleteLiftplan" id="buttonDeleteLiftplan"
+					onclick="deleteLiftplan()">Delete</button>
+			</div>
+		</div>
 	</div>
 
 	<!-- Settings configuration tab -->

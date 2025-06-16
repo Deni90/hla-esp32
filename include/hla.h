@@ -11,19 +11,14 @@ class Hla : public IHla {
     Hla() = default;
     ~Hla() = default;
 
-    /**
-     * @brief Return wifi info
-     *
-     * @return WifiInfo object containing wifi info
-     */
-    WifiInfo OnGetWifiInfo() const;
-
-    /**
-     * @brief Set wifi info and save changes in config store
-     *
-     * @param wifiInfo wifi info
-     */
-    void OnSetWifiInfo(const WifiInfo& wifiInfo);
+    /* Implementation of the IHla interface*/
+    WifiInfo OnGetWifiInfo() const override;
+    void OnSetWifiInfo(const WifiInfo& wifiInfo) override;
+    JsonDocument OnGetLiftplans() const override;
+    bool OnGetLiftplan(const String& name, JsonDocument& liftplan) override;
+    bool OnSetLiftPlan(const String& fileName,
+                       const JsonArray& content) override;
+    bool OnDeleteLiftPlan(const String& fileName) override;
 
   private:
 };

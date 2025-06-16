@@ -35,6 +35,9 @@ class WebServer {
 
     void HandleGetWifiInfo(AsyncWebServerRequest* request);
     void HandleSetWifiInfo(AsyncWebServerRequest* request, JsonVariant& json);
+    void HandleGetLiftplan(AsyncWebServerRequest* request);
+    void HandleSetLiftplan(AsyncWebServerRequest* request, JsonVariant& json);
+    void HandleDeleteLiftplan(AsyncWebServerRequest* request);
 };
 }   // namespace hla
 #endif   // web_server_h

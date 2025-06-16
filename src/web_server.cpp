@@ -6,6 +6,7 @@
 #include "wifi_info.h"
 
 static constexpr int kHttp200Ok = 200;
+static constexpr int kHttp204NoContent = 204;
 static constexpr int kHttp400BadRequest = 400;
 static constexpr int kHttp500InternalServerError = 500;
 
@@ -36,6 +37,16 @@ void WebServer::Initialize() {
         "/wifi", [&](AsyncWebServerRequest* request, JsonVariant& json) {
             this->HandleSetWifiInfo(request, json);
         }));
+    mServer.on("/liftplan", HTTP_GET, [&](AsyncWebServerRequest* request) {
+        this->HandleGetLiftplan(request);
+    });
+    mServer.addHandler(new AsyncCallbackJsonWebHandler(
+        "/liftplan", [&](AsyncWebServerRequest* request, JsonVariant& json) {
+            this->HandleSetLiftplan(request, json);
+        }));
+    mServer.on("/liftplan", HTTP_DELETE, [&](AsyncWebServerRequest* request) {
+        this->HandleDeleteLiftplan(request);
+    });
     mServer.begin();
 }
 
@@ -71,4 +82,74 @@ void WebServer::HandleSetWifiInfo(AsyncWebServerRequest* request,
                 requestBody["password"]);
     request->send(kHttp200Ok, "");
     mCallback.OnSetWifiInfo(wi);
+}
+
+void WebServer::HandleGetLiftplan(AsyncWebServerRequest* request) {
+    if (!request) {
+        return;
+    }
+
+    if (request->hasParam("name")) {
+        // Get a specific liftplan
+        JsonDocument liftplan;
+        if (!mCallback.OnGetLiftplan(request->getParam("name")->value(),
+                                     liftplan)) {
+            request->send(kHttp500InternalServerError,
+                          "Error HandleGetLiftplan: Cannot get liftplan");
+            return;
+        }
+        String messageBuffer;
+        serializeJson(liftplan, messageBuffer);
+        request->send(kHttp200Ok, "application/json", messageBuffer);
+        return;
+    } else {
+        // Return a list containing all liftplans available
+        auto liftplanList = mCallback.OnGetLiftplans();
+        String messageBuffer;
+        serializeJson(liftplanList, messageBuffer);
+        request->send(kHttp200Ok, "application/json", messageBuffer);
+    }
+}
+
+void WebServer::HandleSetLiftplan(AsyncWebServerRequest* request,
+                                  JsonVariant& json) {
+    if (!request) {
+        return;
+    }
+    if (!request->hasParam("name")) {
+        request->send(kHttp400BadRequest,
+                      "Error HandleSaveLiftplan: Missing name parameter");
+        return;
+    }
+    if (!json.is<JsonArray>()) {
+        request->send(kHttp400BadRequest,
+                      "Error HandleSaveLiftplan: expecting a JSON object");
+        return;
+    }
+    if (mCallback.OnSetLiftPlan(request->getParam("name")->value(), json)) {
+        request->send(kHttp200Ok, "");
+        return;
+    } else {
+        request->send(
+            kHttp500InternalServerError,
+            "Error HandleSaveLiftplan: Something wrong happened during saving");
+        return;
+    }
+}
+
+void WebServer::HandleDeleteLiftplan(AsyncWebServerRequest* request) {
+    if (!request) {
+        return;
+    }
+    if (!request->hasParam("name")) {
+        request->send(kHttp400BadRequest,
+                      "Error HandleSaveLiftplan: Missing name parameter");
+        return;
+    }
+    if (!mCallback.OnDeleteLiftPlan(request->getParam("name")->value())) {
+        request->send(kHttp500InternalServerError,
+                      "Error HandleDeleteLiftplan: Cannot delete liftplan");
+        return;
+    }
+    request->send(kHttp204NoContent, "");
 }
