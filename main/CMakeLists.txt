@@ -6,6 +6,7 @@ idf_component_register(
         "web_server.cpp"
         "wifi_info.cpp"
     PRIV_REQUIRES
+        dns_server
         esp_event
         esp_http_server
         esp_wifi

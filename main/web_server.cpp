@@ -77,7 +77,8 @@ esp_err_t WebServer::ResourceHandler(httpd_req_t* req) {
         filepath = "/littlefs/web_server/server.js";
         httpd_resp_set_type(req, "application/javascript");
     } else {
-        filepath = req->uri;
+        filepath = "/littlefs/web_server/index.html";
+        httpd_resp_set_type(req, "text/html");
     }
     std::ifstream file(filepath, std::ios::binary);
     if (!file.is_open()) {

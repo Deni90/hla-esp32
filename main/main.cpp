@@ -3,11 +3,13 @@
 #include "esp_log.h"
 #include "esp_system.h"   //esp_init funtions esp_err_t
 #include "esp_wifi.h"     //esp_wifi_init functions and wifi operations
+#include "lwip/inet.h"
 #include "mbedtls/base64.h"
 #include "mdns.h"
 #include "nvs_flash.h"   //non volatile storage
 
 #include "config_store.h"
+#include "dns_server.h"
 #include "hla.h"
 #include "web_server.h"
 #include "wifi_info.h"
@@ -119,7 +121,38 @@ void InitializeWifiInApMode(const WifiInfo& wifiInfo) {
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifiConfig));
     ESP_ERROR_CHECK(esp_wifi_start());
 
+    esp_netif_ip_info_t ipInfo;
+    esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"),
+                          &ipInfo);
+
     ESP_LOGI(kTag, "Started AP mode with SSID: %s", wifiConfig.ap.ssid);
+}
+
+static void SetupCaptivePortal(void) {
+    // get the IP of the access point to redirect to
+    esp_netif_ip_info_t ipInfo;
+    esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"),
+                          &ipInfo);
+
+    char ipAddr[16];
+    inet_ntoa_r(ipInfo.ip.addr, ipAddr, 16);
+    ESP_LOGI(kTag, "Set up softAP with IP: %s", ipAddr);
+
+    // turn the IP into a URI
+    char* captiveportal_uri = (char*) malloc(32 * sizeof(char));
+    assert(captiveportal_uri && "Failed to allocate captiveportal_uri");
+    strcpy(captiveportal_uri, "http://");
+    strcat(captiveportal_uri, ipAddr);
+
+    // get a handle to configure DHCP with
+    esp_netif_t* netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+
+    // set the DHCP option 114
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcps_stop(netif));
+    ESP_ERROR_CHECK(esp_netif_dhcps_option(
+        netif, ESP_NETIF_OP_SET, ESP_NETIF_CAPTIVEPORTAL_URI, captiveportal_uri,
+        strlen(captiveportal_uri)));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcps_start(netif));
 }
 
 void SetupWifi(const WifiInfo& wifiInfo) {
@@ -134,6 +167,15 @@ void SetupWifi(const WifiInfo& wifiInfo) {
     gWifiEventGroup = xEventGroupCreate();
     if (wifiInfo.GetSSID() == "" || !InitializeWifiInStationMode(wifiInfo)) {
         InitializeWifiInApMode(wifiInfo);
+        ESP_LOGI(kTag, "Setup captive portal...");
+        SetupCaptivePortal();
+        ESP_LOGI(kTag, "Setup captive portal... done");
+        ESP_LOGI(kTag, "Start DNS server...");
+        // Start the DNS server that will redirect all queries to the softAP IP
+        dns_server_config_t config = DNS_SERVER_CONFIG_SINGLE(
+            "*" /* all A queries */, "WIFI_AP_DEF" /* softAP netif ID */);
+        start_dns_server(&config);
+        ESP_LOGI(kTag, "Start DNS server... done");
     }
 }
 
