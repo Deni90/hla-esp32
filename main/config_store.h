@@ -1,6 +1,9 @@
 #ifndef config_store_h
 #define config_store_h
 
+#include <optional>
+#include <vector>
+
 #include "wifi_info.h"
 
 namespace hla {
@@ -12,9 +15,9 @@ class ConfigStore {
     /**
      * @brief Load wifi info
      *
-     * @param wifiInfo wifi info
+     * @param return WifiInfo if the file is successfully read
      */
-    static void LoadWifiInfo(WifiInfo& wifiInfo);
+    static std::optional<WifiInfo> LoadWifiInfo();
 
     /**
      * @brief Save wifi info
@@ -24,20 +27,20 @@ class ConfigStore {
     static void SaveWifiInfo(const WifiInfo& wifiInfo);
 
     /**
+     * @brief Return a list of available liftplan files
+     *
+     * @return A vector containing liftplan filenames relative to liftplan dir
+     */
+    static std::vector<std::string> ListLiftplanFiles();
+
+    /**
      * @brief Load liftplan
      *
      * @param[in] fileName Name of the file. It should have a .json extension
      * @param[out] liftplan Liftplan
-     * @return Result of the retrieval
+     * @return Content of the liftplan if successfully read
      */
-    static bool LoadLiftplan(const String& fileName, JsonDocument& liftplan);
-
-    /**
-     * @brief Return a list of available liftplan files
-     *
-     * @return JSON aray
-     */
-    static JsonDocument ListLiftplanFiles();
+    static std::optional<std::string> LoadLiftplan(const std::string& fileName);
 
     /**
      * @brief Save a liftplan file to file system
@@ -47,7 +50,8 @@ class ConfigStore {
      * @return True, if the file is saved. False, if the file with a given name
      * already exists or other error...
      */
-    static bool SaveLiftPlan(const String& fileName, const JsonArray& data);
+    static bool SaveLiftPlan(const std::string& fileName,
+                             const std::string& data);
 
     /**
      * @brief Delete a liftplan file
@@ -55,7 +59,7 @@ class ConfigStore {
      * @param[in] fileName Name of the file. It should have a .json extension
      * @return True, if the file is deleted.
      */
-    static bool DeleteLiftPlan(const String& fileName);
+    static bool DeleteLiftPlan(const std::string& fileName);
 };
 }   // namespace hla
 #endif   // config_store_h

@@ -1,6 +1,9 @@
 #ifndef hla_iface_h
 #define hla_iface_h
 
+#include <optional>
+#include <vector>
+
 #include "wifi_info.h"
 
 namespace hla {
@@ -17,7 +20,7 @@ class IHla {
      *
      * @return WifiInfo object containing wifi info
      */
-    virtual WifiInfo OnGetWifiInfo() const = 0;
+    virtual std::optional<WifiInfo> OnGetWifiInfo() const = 0;
 
     /**
      * @brief Set wifi info and save changes in config store
@@ -28,9 +31,9 @@ class IHla {
 
     /**
      * @brief Get a list of available liftplan files
-     * @return The JSON array containing liftplan files
+     * @return An array containing liftplan files
      */
-    virtual JsonDocument OnGetLiftplans() const = 0;
+    virtual std::vector<std::string> OnGetLiftplans() const = 0;
 
     /**
      * @brief Get a liftplan by name
@@ -38,7 +41,8 @@ class IHla {
      * @param[out] liftplan The liftplan in JSON format
      * @return The whether the liftplan is returned successfully
      */
-    virtual bool OnGetLiftplan(const String& name, JsonDocument& liftplan) = 0;
+    virtual std::optional<std::string>
+    OnGetLiftplan(const std::string& fileName) = 0;
 
     /**
      * @brief Save liftplan to liftplan catalogue
@@ -47,8 +51,8 @@ class IHla {
      * @param[in] content JSON array containing the actual liftplan
      * @return True if the plan is successfully saved. Otherwise return false
      */
-    virtual bool OnSetLiftPlan(const String& fileName,
-                               const JsonArray& content) = 0;
+    virtual bool OnSetLiftPlan(const std::string& fileName,
+                               const std::string& data) = 0;
 
     /**
      * @brief Save liftplan to liftplan catalogue
@@ -56,7 +60,7 @@ class IHla {
      * @param[in] fileName Name of the liftplan file
      * @return True, if the file is deleted.
      */
-    virtual bool OnDeleteLiftPlan(const String& fileName) = 0;
+    virtual bool OnDeleteLiftPlan(const std::string& fileName) = 0;
 };
 }   // namespace hla
 #endif   // hla_iface_h

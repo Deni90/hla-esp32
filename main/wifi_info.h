@@ -1,8 +1,10 @@
 #ifndef wifi_info_h
 #define wifi_info_h
 
-#include <ArduinoJson.h>
 #include <inttypes.h>
+#include <string>
+
+#include "cJSON.h"
 
 namespace hla {
 /**
@@ -17,14 +19,14 @@ class WifiInfo {
     WifiInfo() = default;
 
     /**
-     * @brief Construct a new Sleep Info object
+     * @brief Construct a new Wifi Info object
      *
      * @param hostname hostname
      * @param ssid SSID
      * @param password password
      */
-    WifiInfo(const String& hostname, const String& ssid,
-             const String& password);
+    WifiInfo(const std::string& hostname, const std::string& ssid,
+             const std::string& password);
 
     /**
      * @brief Default destructor
@@ -33,63 +35,62 @@ class WifiInfo {
 
     /**
      * @brief Default copy constructor
-     * @param ledInfo LedInfo object
+     * @param other WifiInfo object
      */
-    WifiInfo(const WifiInfo& WifiInfo) = default;
+    WifiInfo(const WifiInfo& other) = default;
+
+    /**
+     * @brief Default copy assignment constructor
+     * @param other WifiInfo object
+     */
+    WifiInfo& operator=(const WifiInfo& other) = default;
 
     /**
      * @brief Getter for hostname
      *
-     * @return String hostname
+     * @return hostname
      */
-    String GetHostname() const;
+    std::string GetHostname() const;
 
     /**
      * @brief Setter for hostname
      *
      * @param value hostname
      */
-    void SetHostname(const String& value);
+    void SetHostname(const std::string& value);
 
     /**
      * @brief Getter for ssid
      *
-     * @return String SSID
+     * @return SSID
      */
-    String GetSSID() const;
+    std::string GetSSID() const;
 
     /**
      * @brief Setter for SSID
      *
      * @param value ssid
      */
-    void SetSSID(const String& value);
+    void SetSSID(const std::string& value);
 
     /**
      * @brief Getter for password
      *
-     * @return String base64 encoded password
+     * @return base64 encoded password
      */
-    String GetPassword() const;
+    std::string GetPassword() const;
 
     /**
      * @brief Setter for password
      *
      * @param value base64 encoded password
      */
-    void SetPassword(const String& value);
-
-    /**
-     * @brief Convert WifiInfo to JSON format
-     *
-     * @return JsonDocument JSON object containing WifiInfo
-     */
-    JsonDocument ToJson() const;
+    void SetPassword(const std::string& value);
 
   private:
-    String mHostname;
-    String mSsid;
-    String mPassword;
+    std::string mHostname;
+    std::string mSsid;
+    std::string mPassword;
 };
 }   // namespace hla
 #endif   // wifi_info_h

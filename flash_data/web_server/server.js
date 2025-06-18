@@ -123,7 +123,7 @@ window.addEventListener('load', function () {
 });
 
 function getWifiInfo() {
-    fetch('/wifi')
+    fetch('/api/v1/wifi')
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -181,7 +181,7 @@ function setWifiInfo() {
         },
         body: JSON.stringify(wifiInfo.toJson())
     };
-    fetch("/wifi", requestOptions)
+    fetch("/api/v1/wifi", requestOptions)
         .then(response => {
             if (response.ok) {
                 logLabel.innerHTML = "Restarting...";
@@ -193,7 +193,7 @@ function setWifiInfo() {
 }
 
 function getLiftplan(name, dest) {
-    fetch('/liftplan?name=' + name)
+    fetch('/api/v1/liftplan?name=' + name)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -221,7 +221,7 @@ function saveLiftplan(liftplan) {
         logLabel.innerHTML = "";
     }
     const data = liftplan.toHexArray();
-    fetch('/liftplan?name=' + liftplanName + ".json", {
+    fetch('/api/v1/liftplan?name=' + liftplanName + ".json", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -234,7 +234,7 @@ function saveLiftplan(liftplan) {
 
 function deleteLiftplan() {
     const select = document.getElementById('selectLiftplan');
-    fetch('/liftplan?name=' + select.value, {
+    fetch('/api/v1/liftplan?name=' + select.value, {
         method: 'DELETE'
     }).then(res => {
         if (res.ok) handleLiftplanPreview();
@@ -243,7 +243,7 @@ function deleteLiftplan() {
 }
 
 function handleLiftplanPreview() {
-    fetch('/liftplan')
+    fetch('/api/v1/liftplan')
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
