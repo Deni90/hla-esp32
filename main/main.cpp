@@ -55,7 +55,7 @@ extern "C" void WifiEventHandler(void* arg, esp_event_base_t eventBase,
     }
 }
 
-bool InitializeWifiInStationMode(const WifiInfo& wifiInfo) {
+static bool InitializeWifiInStationMode(const WifiInfo& wifiInfo) {
     esp_netif_t* netif = esp_netif_create_default_wifi_sta();
     ESP_ERROR_CHECK(
         esp_netif_set_hostname(netif, wifiInfo.GetHostname().c_str()));
@@ -101,7 +101,7 @@ bool InitializeWifiInStationMode(const WifiInfo& wifiInfo) {
     return false;
 }
 
-void InitializeWifiInApMode(const WifiInfo& wifiInfo) {
+static void InitializeWifiInApMode(const WifiInfo& wifiInfo) {
     esp_netif_t* netif = esp_netif_create_default_wifi_ap();
     ESP_ERROR_CHECK(
         esp_netif_set_hostname(netif, wifiInfo.GetHostname().c_str()));
@@ -155,7 +155,7 @@ static void SetupCaptivePortal(void) {
     ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcps_start(netif));
 }
 
-void SetupWifi(const WifiInfo& wifiInfo) {
+static void SetupWifi(const WifiInfo& wifiInfo) {
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
         ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -179,7 +179,7 @@ void SetupWifi(const WifiInfo& wifiInfo) {
     }
 }
 
-void StartMdnsService(const WifiInfo& wifiInfo) {
+static void StartMdnsService(const WifiInfo& wifiInfo) {
     ESP_ERROR_CHECK(mdns_init());
     ESP_ERROR_CHECK(mdns_hostname_set(wifiInfo.GetHostname().c_str()));
     ESP_ERROR_CHECK(mdns_instance_name_set("HandloomController web server"));
@@ -187,7 +187,7 @@ void StartMdnsService(const WifiInfo& wifiInfo) {
              wifiInfo.GetHostname().c_str());
 }
 
-bool SetupLittlefs() {
+static bool SetupLittlefs() {
     esp_vfs_littlefs_conf_t conf = {
         .base_path = "/littlefs",
         .partition_label = "littlefs",
@@ -211,7 +211,7 @@ bool SetupLittlefs() {
     return true;
 }
 
-void setup() {
+static void setup() {
     ESP_LOGD(kTag, "Setup -->");
     ESP_LOGI(kTag, "Initialize LittleFS...");
     if (SetupLittlefs()) {
@@ -233,7 +233,7 @@ void setup() {
     ESP_LOGD(kTag, "Setup <--");
 }
 
-void loop() {
+static void loop() {
     vTaskDelay(1000 / portTICK_PERIOD_MS);   // Delay 1 second
 }
 
