@@ -104,6 +104,9 @@ void InitializeWifiInApMode(const WifiInfo& wifiInfo) {
     ESP_ERROR_CHECK(
         esp_netif_set_hostname(netif, wifiInfo.GetHostname().c_str()));
 
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
     wifi_config_t wifiConfig = {};
     std::strncpy(reinterpret_cast<char*>(wifiConfig.ap.ssid), kApSsid,
                  sizeof(wifiConfig.ap.ssid));
@@ -112,12 +115,11 @@ void InitializeWifiInApMode(const WifiInfo& wifiInfo) {
     wifiConfig.ap.max_connection = 4;
     wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
 
-    ESP_ERROR_CHECK(esp_wifi_stop());
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifiConfig));
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(kTag, "Started AP mode with SSID: %s", kApSsid);
+    ESP_LOGI(kTag, "Started AP mode with SSID: %s", wifiConfig.ap.ssid);
 }
 
 void SetupWifi(const WifiInfo& wifiInfo) {
