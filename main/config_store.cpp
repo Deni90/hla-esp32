@@ -51,6 +51,9 @@ void ConfigStore::SaveWifiInfo(const WifiInfo& wifiInfo) {
 }
 
 std::vector<std::string> ConfigStore::ListLiftplanFiles() {
+    if (!std::filesystem::exists(kLiftplanDir)) {
+        return {};
+    }
     std::filesystem::path liftplanDir = kLiftplanDir;
     std::vector<std::string> result;
     for (const auto& entry : std::filesystem::directory_iterator(liftplanDir)) {
@@ -82,6 +85,13 @@ bool ConfigStore::SaveLiftPlan(const std::string& fileName,
     if (std::filesystem::exists(liftplanFilePath)) {
         return false;
     }
+
+    if (!std::filesystem::exists(kLiftplanDir)) {
+        if (!std::filesystem::create_directory(kLiftplanDir)) {
+            return false;
+        }
+    }
+
     std::ofstream liftplanFile(liftplanFilePath);
     liftplanFile << data;
     return true;
