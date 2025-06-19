@@ -68,16 +68,16 @@ esp_err_t WebServer::ResourceHandler(httpd_req_t* req) {
     std::string filepath;
     std::string uri = req->uri;
     if (uri == "/") {
-        filepath = "/littlefs/web_server/index.html";
+        filepath = "/littlefs/frontend/index.html";
         httpd_resp_set_type(req, "text/html");
     } else if (uri == "/style.css") {
-        filepath = "/littlefs/web_server/style.css";
+        filepath = "/littlefs/frontend/style.css";
         httpd_resp_set_type(req, "text/css");
     } else if (uri == "/server.js") {
-        filepath = "/littlefs/web_server/server.js";
+        filepath = "/littlefs/frontend/server.js";
         httpd_resp_set_type(req, "application/javascript");
     } else {
-        filepath = "/littlefs/web_server/index.html";
+        filepath = "/littlefs/frontend/index.html";
         httpd_resp_set_type(req, "text/html");
     }
     std::ifstream file(filepath, std::ios::binary);
