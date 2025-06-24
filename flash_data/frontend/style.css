@@ -15,18 +15,24 @@ body {
     border-color: #dddddd;
     border-width: 1px 0;
     border-style: solid;
-    font-weight: bold;
     text-shadow: 0 0px 0 #000000;
     letter-spacing: 0.5px;
 }
 
-.title {
+.header h1 {
     min-height: 1em;
-    padding: 0.5em 0;
     font-size: 1.3em;
     font-weight: bold;
     text-align: center;
     color: #ffffff;
+    margin-bottom: 0px;
+}
+
+.header p {
+    font-size: 0.9em;
+    text-align: center;
+    color: #ffffff;
+    margin-top: 0px;
 }
 
 .main-tab {
