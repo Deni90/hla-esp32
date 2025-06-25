@@ -61,6 +61,27 @@ class IHla {
      * @return True, if the file is deleted.
      */
     virtual bool OnDeleteLiftPlan(const std::string& fileName) = 0;
+
+    /**
+     * @brief Start loom
+     * @param[in] liftplanFileName Liftplan name
+     * @param[in] startPosition Start position
+     * @return True if successfully switched to state, otherwise false
+     */
+    virtual bool OnStart(const std::string& liftplanFileName,
+                         unsigned int startPosition) = 0;
+
+    /**
+     * @brief Pause loom
+     * @return True if successfully switched to state, otherwise false
+     */
+    virtual bool OnPause() = 0;
+
+    /**
+     * @brief Stop loom
+     * @return True if successfully switched to state, otherwise false
+     */
+    virtual bool OnStop() = 0;
 };
 }   // namespace hla
 #endif   // hla_iface_h

@@ -1,14 +1,18 @@
 #ifndef hla_h
 #define hla_h
 
+#include "button_handler.h"
+#include "circular_deque.h"
 #include "hla_iface.h"
 #include "wifi_info.h"
 
 namespace hla {
 
-class Hla : public IHla {
+class Hla : public IHla, public ButtonHandler {
   public:
-    Hla() = default;
+    enum class State { idle, running, paused };
+
+    Hla();
     ~Hla() = default;
 
     std::optional<WifiInfo> OnGetWifiInfo() const override;
@@ -19,8 +23,19 @@ class Hla : public IHla {
     bool OnSetLiftPlan(const std::string& fileName,
                        const std::string& data) override;
     bool OnDeleteLiftPlan(const std::string& fileName) override;
+    bool OnStart(const std::string& liftplanFileName,
+                 unsigned int startPosition) override;
+    bool OnPause() override;
+    bool OnStop() override;
 
   private:
+    void onButtonPressed(gpio_num_t gpio) override;
+    void ResetLiftplan();
+
+    State mState;
+    std::string mLiftplanName;
+    CircularDeque<uint8_t> mLiftplan;
+    CircularDeque<uint8_t>::Cursor mLiftplanCursor;
 };
 }   // namespace hla
 #endif   // hla_h

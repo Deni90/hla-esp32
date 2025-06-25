@@ -211,8 +211,8 @@ static bool SetupLittlefs() {
     return true;
 }
 
-static void setup() {
-    ESP_LOGD(kTag, "Setup -->");
+extern "C" void app_main(void) {
+    ESP_LOGI(kTag, "Handloom automation controller");
     ESP_LOGI(kTag, "Initialize LittleFS...");
     if (SetupLittlefs()) {
         ESP_LOGI(kTag, "Initialize LittleFS... done");
@@ -229,17 +229,4 @@ static void setup() {
     ESP_LOGI(kTag, "Initialize Web server...");
     gWebServer.Initialize();
     ESP_LOGI(kTag, "Initialize Web server.. done");
-
-    ESP_LOGD(kTag, "Setup <--");
-}
-
-static void loop() {
-    vTaskDelay(1000 / portTICK_PERIOD_MS);   // Delay 1 second
-}
-
-#include <sstream>
-
-extern "C" void app_main(void) {
-    ESP_LOGI(kTag, "Handloom automation controller");
-    setup();
 }
