@@ -8,15 +8,14 @@
 #include "web_server.h"
 #include "wifi_info.h"
 
-// using hla::IHla;
-using hla::IHla;
+using hla::ILoom;
 using hla::WebServer;
 using hla::WifiInfo;
 
 static const char* kTag = "web_server";
 static char gScratch[10240];
 
-WebServer::WebServer(IHla& callback) : mCallback(callback) {}
+WebServer::WebServer(ILoom& callback) : mCallback(callback) {}
 
 void WebServer::Initialize() {
     httpd_handle_t server = NULL;
@@ -109,7 +108,7 @@ esp_err_t WebServer::ResourceHandler(httpd_req_t* req) {
 }
 
 esp_err_t WebServer::HandleGetWifiInfo(httpd_req_t* req) {
-    IHla* callback = static_cast<IHla*>(req->user_ctx);
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     auto maybeWifiInfo = callback->OnGetWifiInfo();
     if (!maybeWifiInfo.has_value()) {
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
@@ -130,7 +129,7 @@ esp_err_t WebServer::HandleGetWifiInfo(httpd_req_t* req) {
 }
 
 esp_err_t WebServer::HandleSetWifiInfo(httpd_req_t* req) {
-    IHla* callback = static_cast<IHla*>(req->user_ctx);
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     int cur_len = 0;
     int received = 0;
     if (req->content_len >= sizeof(gScratch)) {
@@ -162,7 +161,7 @@ esp_err_t WebServer::HandleSetWifiInfo(httpd_req_t* req) {
 }
 
 esp_err_t WebServer::HandleGetLiftplan(httpd_req_t* req) {
-    IHla* callback = static_cast<IHla*>(req->user_ctx);
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     char query[100];
     char name[64] = {0};
     if (httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK) {
@@ -197,7 +196,7 @@ esp_err_t WebServer::HandleGetLiftplan(httpd_req_t* req) {
 }
 
 esp_err_t WebServer::HandleSetLiftplan(httpd_req_t* req) {
-    IHla* callback = static_cast<IHla*>(req->user_ctx);
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     char query[100];
     char name[64] = {0};
     if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK) {
@@ -234,7 +233,7 @@ esp_err_t WebServer::HandleSetLiftplan(httpd_req_t* req) {
 }
 
 esp_err_t WebServer::HandleDeleteLiftplan(httpd_req_t* req) {
-    IHla* callback = static_cast<IHla*>(req->user_ctx);
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     char query[100];
     char name[64] = {0};
     if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK) {

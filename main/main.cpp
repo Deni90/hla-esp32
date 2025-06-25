@@ -10,12 +10,12 @@
 
 #include "config_store.h"
 #include "dns_server.h"
-#include "hla.h"
+#include "loom.h"
 #include "web_server.h"
 #include "wifi_info.h"
 
 using hla::ConfigStore;
-using hla::Hla;
+using hla::Loom;
 using hla::WebServer;
 using hla::WifiInfo;
 
@@ -24,8 +24,8 @@ static const char* kApSsid = "HandloomController";
 static const int kMaxConnectionRetry = 5;
 
 static EventGroupHandle_t gWifiEventGroup;
-static Hla gHla;
-static WebServer gWebServer(gHla);
+static Loom gLoom;
+static WebServer gWebServer(gLoom);
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1

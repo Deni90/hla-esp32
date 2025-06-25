@@ -5,7 +5,7 @@
 
 #include "esp_http_server.h"
 
-#include "hla_iface.h"
+#include "loom_iface.h"
 
 namespace hla {
 /**
@@ -18,7 +18,7 @@ class WebServer {
      *
      * @param callback clock interface object
      */
-    WebServer(IHla& callback);
+    WebServer(ILoom& callback);
 
     /**
      * @brief Initialize web server
@@ -35,7 +35,7 @@ class WebServer {
     static esp_err_t HandleSetLiftplan(httpd_req_t* req);
     static esp_err_t HandleDeleteLiftplan(httpd_req_t* req);
 
-    IHla& mCallback;
+    ILoom& mCallback;
 };
 }   // namespace hla
 #endif   // web_server_h

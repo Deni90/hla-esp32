@@ -1,19 +1,19 @@
-#ifndef hla_h
-#define hla_h
+#ifndef loom_h
+#define loom_h
 
 #include "button_handler.h"
 #include "circular_deque.h"
-#include "hla_iface.h"
+#include "loom_iface.h"
 #include "wifi_info.h"
 
 namespace hla {
 
-class Hla : public IHla, public ButtonHandler {
+class Loom : public ILoom, public ButtonHandler {
   public:
     enum class State { idle, running, paused };
 
-    Hla();
-    ~Hla() = default;
+    Loom();
+    ~Loom() = default;
 
     std::optional<WifiInfo> OnGetWifiInfo() const override;
     void OnSetWifiInfo(const WifiInfo& wifiInfo) override;
@@ -38,4 +38,4 @@ class Hla : public IHla, public ButtonHandler {
     CircularDeque<uint8_t>::Cursor mLiftplanCursor;
 };
 }   // namespace hla
-#endif   // hla_h
+#endif   // loom_h

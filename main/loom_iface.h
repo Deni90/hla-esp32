@@ -1,5 +1,5 @@
-#ifndef hla_iface_h
-#define hla_iface_h
+#ifndef loom_iface_h
+#define loom_iface_h
 
 #include <optional>
 #include <vector>
@@ -7,13 +7,13 @@
 #include "wifi_info.h"
 
 namespace hla {
-class IHla {
+class ILoom {
   public:
     /**
      * @brief Default destructor
      *
      */
-    virtual ~IHla() = default;
+    virtual ~ILoom() = default;
 
     /**
      * @brief Return wifi info
@@ -84,4 +84,4 @@ class IHla {
     virtual bool OnStop() = 0;
 };
 }   // namespace hla
-#endif   // hla_iface_h
+#endif   // loom_iface_h

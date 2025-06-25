@@ -6,48 +6,48 @@
 #include "cJSON.h"
 
 #include "config_store.h"
-#include "hla.h"
+#include "loom.h"
 #include "wifi_info.h"
 
 using hla::ConfigStore;
-using hla::Hla;
+using hla::Loom;
 using hla::WifiInfo;
 
 #define NEXT_BUTTON GPIO_NUM_22
 #define PREV_BUTTON GPIO_NUM_23
 
-static const char* kTag = "hla";
+static const char* kTag = "loom";
 
-Hla::Hla()
+Loom::Loom()
     : ButtonHandler({NEXT_BUTTON, PREV_BUTTON}), mState(State::idle),
       mLiftplanName(""), mLiftplanCursor(nullptr) {}
 
-std::optional<WifiInfo> Hla::OnGetWifiInfo() const {
+std::optional<WifiInfo> Loom::OnGetWifiInfo() const {
     return ConfigStore::LoadWifiInfo();
 }
 
-void Hla::OnSetWifiInfo(const WifiInfo& wifiInfo) {
+void Loom::OnSetWifiInfo(const WifiInfo& wifiInfo) {
     ConfigStore::SaveWifiInfo(wifiInfo);
 }
 
-std::vector<std::string> Hla::OnGetLiftplans() const {
+std::vector<std::string> Loom::OnGetLiftplans() const {
     return ConfigStore::ListLiftplanFiles();
 }
 
-std::optional<std::string> Hla::OnGetLiftplan(const std::string& fileName) {
+std::optional<std::string> Loom::OnGetLiftplan(const std::string& fileName) {
     return ConfigStore::LoadLiftplan(fileName);
 }
 
-bool Hla::OnSetLiftPlan(const std::string& fileName, const std::string& data) {
+bool Loom::OnSetLiftPlan(const std::string& fileName, const std::string& data) {
     return ConfigStore::SaveLiftPlan(fileName, data);
 }
 
-bool Hla::OnDeleteLiftPlan(const std::string& fileName) {
+bool Loom::OnDeleteLiftPlan(const std::string& fileName) {
     return ConfigStore::DeleteLiftPlan(fileName);
 }
 
-bool Hla::OnStart(const std::string& liftplanFileName,
-                  unsigned int startPosition) {
+bool Loom::OnStart(const std::string& liftplanFileName,
+                   unsigned int startPosition) {
     // it is only possible to switch to running from idle state
     if (mState != State::idle) {
         ESP_LOGW(kTag,
@@ -89,7 +89,7 @@ bool Hla::OnStart(const std::string& liftplanFileName,
     cJSON_Delete(root);
     // setup the cursor
     mLiftplanCursor = mLiftplan.frontCursor();
-    for(unsigned int i = 0; i < startPosition; ++i){
+    for (unsigned int i = 0; i < startPosition; ++i) {
         mLiftplanCursor = mLiftplanCursor.next();
     }
     // TODO move shafts to match the first element from the liftplan
@@ -99,7 +99,7 @@ bool Hla::OnStart(const std::string& liftplanFileName,
     return true;
 }
 
-bool Hla::OnPause() {
+bool Loom::OnPause() {
     if (mState != State::running) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'pause' state. Not in 'running' state.");
@@ -110,7 +110,7 @@ bool Hla::OnPause() {
     return true;
 }
 
-bool Hla::OnStop() {
+bool Loom::OnStop() {
     // if in "idle" there is nothing to do
     if (mState == State::idle) {
         return true;
@@ -124,7 +124,7 @@ bool Hla::OnStop() {
     return true;
 }
 
-void Hla::onButtonPressed(gpio_num_t gpio) {
+void Loom::onButtonPressed(gpio_num_t gpio) {
     ESP_LOGD(kTag, "Pressed GPIO %d", gpio);
     if (mState != State::running || !mLiftplanCursor.isValid()) {
         return;
@@ -136,11 +136,11 @@ void Hla::onButtonPressed(gpio_num_t gpio) {
     } else {
         return;
     }
-    //TODO implement me
+    // TODO implement me
     ESP_LOGI(kTag, "loom, move to 0x%02x", mLiftplanCursor.value());
 }
 
-void Hla::ResetLiftplan() {
+void Loom::ResetLiftplan() {
     mLiftplanName.clear();
     mLiftplan.empty();
     mLiftplanCursor.reset();
