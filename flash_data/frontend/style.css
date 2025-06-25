@@ -203,6 +203,10 @@ input[type="text"]:disabled {
     color: #ffffff;
 }
 
+.select:disabled {
+    opacity: 0.5;
+}
+
 .log {
     padding-top: 1em;
     width: 100%;

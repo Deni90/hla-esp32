@@ -14,8 +14,35 @@
 		<p>Control Panel</p>
 	</div>
 	<div id="mainTab" class="main-tab">
-		<button id="mainTabButtonLiftplan" onclick="openTab('mainTab', 'Liftplan')">Liftplan editor</button>
-		<button class="tablinks" id="mainTabButtonSettings" onclick="openTab('mainTab', 'Settings')">Settings</button>
+		<button id="mainTabButtonDashboard" onclick="openMainTab('mainTab', 'Dashboard')">Dashboard</button>
+		<button id="mainTabButtonLiftplan" onclick="openMainTab('mainTab', 'Liftplan')">Liftplan editor</button>
+		<button class="tablinks" id="mainTabButtonSettings" onclick="openMainTab('mainTab', 'Settings')">Settings</button>
+	</div>
+
+	<!-- Dashboard tab -->
+	<div id="mainTabDashboard" class="main-tabcontent">
+		<h2>Dashboard</h2>
+		<div class="field-container">
+			<label for="statusLabel">Status:</label>
+			<label id="statusLabel"></label>
+		</div>
+		<div class="field-container">
+			<label for="liftplanList">Liftplan name:</label>
+			<select class="select" name="selectLiftplan" id="selectLiftplan" onchange="updateLiftplanSelect()">
+			</select>
+		</div>
+		<div class="field-container-no-height" id="activeLiftplanContainer">
+			<label for="liftplan-table">Liftplan:</label>
+			<table id="liftplanActiveTable" class="liftplan-table"></table>
+			<table id="currentStatusTable" class="current-status-table">
+			</table>
+		</div>
+		<div class="field-container-no-height">
+			<button class="button" id="startButton"onclick="startLoom()">Start</button>
+			<button class="button" id="pauseButton"onclick="pauseLoom()">Pause</button>
+			<button class="button" id="continueButton"onclick="continueLoom()">Continue</button>
+			<button class="delete-button" id="stopButton" onclick="stopLoom()">Stop</button>
+		</div>
 	</div>
 
 	<!-- Liftplans tab -->
@@ -63,7 +90,7 @@
 		<div id="liftplanTabManageExisting" class="tabcontent">
 			<div class="field-container">
 				<label for="liftplanList">Liftplan(s):</label>
-				<select class="select" name="selectLiftplan" id="selectLiftplan" onchange="updatePreviewSelect()">
+				<select class="select" name="selectLiftplanPreview" id="selectLiftplanPreview" onchange="updatePreviewSelect()">
 				</select>
 			</div>
 			<div class="field-container-no-height" id="previewContainer">

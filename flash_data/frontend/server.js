@@ -93,6 +93,7 @@ class LiftPlan {
 
 var wifiInfo = null;
 var liftplanEditableTable = new LiftPlan("liftplanEditableTable");
+var loomIntervalId = 0;
 
 function openTab(id, tabName) {
     var i, tabcontent, tablinks;
@@ -109,7 +110,6 @@ function openTab(id, tabName) {
 }
 
 window.addEventListener('load', function () {
-    getWifiInfo();
     var tabcontent = document.getElementById("mainTab").children;
     for (i = 0; i < tabcontent.length; i++) {
         tabcontent[i].style.width = 100.0 / tabcontent.length + "%";
@@ -118,9 +118,18 @@ window.addEventListener('load', function () {
     for (i = 0; i < tabcontent.length; i++) {
         tabcontent[i].style.width = 100.0 / tabcontent.length + "%";
     }
-
-    openTab("mainTab", "Liftplan");
+    openMainTab("mainTab", "Dashboard");
 });
+
+function openMainTab(id, tabName) {
+    if (tabName == "Dashboard") {
+        getLoomState();
+        handleLiftplanSelection();
+    } else if(tabName == "Settings") {
+        getWifiInfo();
+    }
+    openTab(id, tabName)
+}
 
 function getWifiInfo() {
     fetch('/api/v1/wifi')
@@ -233,7 +242,8 @@ function saveLiftplan(liftplan) {
 }
 
 function deleteLiftplan() {
-    const select = document.getElementById('selectLiftplan');
+    const select = document.getElementById('selectLiftplanPreview');
+    console.log("Delete liftplan" + select.value);
     fetch('/api/v1/liftplan?name=' + select.value, {
         method: 'DELETE'
     }).then(res => {
@@ -251,7 +261,7 @@ function handleLiftplanPreview() {
             return response.json();
         })
         .then(data => {
-            const liftplanSelect = document.getElementById('selectLiftplan');
+            const liftplanSelect = document.getElementById('selectLiftplanPreview');
             // clear select to prevent adding duplicates
             while (liftplanSelect.length > 0) {
                 liftplanSelect.remove(0);
@@ -293,6 +303,149 @@ function openLiftplanTab(id, tabName) {
 }
 
 function updatePreviewSelect() {
-    const select = document.getElementById('selectLiftplan');
+    const select = document.getElementById('selectLiftplanPreview');
     getLiftplan(select.value, "liftplanPreviewTable");
+}
+
+function handleLiftplanSelection() {
+    fetch('/api/v1/liftplan')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const liftplanSelect = document.getElementById('selectLiftplan');
+            // clear select to prevent adding duplicates
+            while (liftplanSelect.length > 0) {
+                liftplanSelect.remove(0);
+            }
+            // populate select with liftplans
+            data.forEach(optionText => {
+                const option = document.createElement('option');
+                option.value = optionText;
+                option.textContent = optionText.replace(".json", "");
+                liftplanSelect.appendChild(option);
+            });
+            if (data.length > 0) {
+                // fetch the first liftplan
+                document.getElementById("activeLiftplanContainer").style.display = "flex";
+                getLiftplan(data[0], "liftplanActiveTable");
+            } else {
+                document.getElementById("activeLiftplanContainer").style.display = "none";
+            }
+        })
+        .catch(error => {
+            console.error('There was a problem with the getting a list of liftplans:', error);
+            document.getElementById("activeLiftplanContainer").style.display = "none";
+        });
+}
+
+function updateLiftplanSelect() {
+    const select = document.getElementById('selectLiftplan');
+    getLiftplan(select.value, "liftplanActiveTable");
+}
+
+function handleLoomState(state) {
+    document.getElementById("statusLabel").innerHTML = state.toUpperCase();
+    if (state == "idle") {
+        document.getElementById("startButton").style.display = "block";
+        document.getElementById("pauseButton").style.display = "none";
+        document.getElementById("continueButton").style.display = "none";
+        document.getElementById("stopButton").style.display = "none";
+        document.getElementById("selectLiftplan").disabled = false;
+    } else if (state == "running") {
+        document.getElementById("startButton").style.display = "none";
+        document.getElementById("pauseButton").style.display = "block";
+        document.getElementById("continueButton").style.display = "none";
+        document.getElementById("stopButton").style.display = "block";
+        document.getElementById("selectLiftplan").disabled = true;
+    } else if (state == "paused") {
+        document.getElementById("startButton").style.display = "none";
+        document.getElementById("pauseButton").style.display = "none";
+        document.getElementById("continueButton").style.display = "block";
+        document.getElementById("stopButton").style.display = "block";
+        document.getElementById("selectLiftplan").disabled = true;
+    }
+}
+
+function getLoomState() {
+    fetch('/api/v1/loom')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Loom state =  " + JSON.stringify(data));
+            handleLoomState(data.loom_state);
+        })
+        .catch(error => {
+            console.error('There was a problem with the getting loom state:', error);
+        });
+}
+
+function startLoom() {
+    const requestOptions = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            'liftplan': document.getElementById('selectLiftplan').value,
+            'start_position': 0
+        })
+    };
+    console.log("JSON = " + JSON.stringify(requestOptions.body));
+    fetch("/api/v1/loom/start", requestOptions)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Start loom response: " + JSON.stringify(data));
+            if (data.status == true) {
+                handleLoomState("running");
+            }
+        });
+}
+
+function pauseLoom() {
+    const requestOptions = {
+        method: 'POST',
+    };
+    console.log("JSON = " + JSON.stringify(requestOptions.body));
+    fetch("/api/v1/loom/pause", requestOptions)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Pause loom response: " + JSON.stringify(data));
+            handleLoomState("paused");
+        });
+}
+
+function continueLoom() {
+    const requestOptions = {
+        method: 'POST',
+    };
+    console.log("JSON = " + JSON.stringify(requestOptions.body));
+    fetch("/api/v1/loom/continue", requestOptions)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Continue loom response: " + JSON.stringify(data));
+            handleLoomState("running");
+        });
+}
+
+function stopLoom() {
+    const requestOptions = {
+        method: 'POST',
+    };
+    console.log("JSON = " + JSON.stringify(requestOptions.body));
+    fetch("/api/v1/loom/stop", requestOptions)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Stop loom response: " + JSON.stringify(data));
+            if (data.status == true) {
+                handleLoomState("idle");
+            }
+        });
 }

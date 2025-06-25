@@ -78,10 +78,22 @@ class ILoom {
     virtual bool onPause() = 0;
 
     /**
+     * @brief Continue loom
+     * @return True if successfully switched to state, otherwise false
+     */
+    virtual bool onContinue() = 0;
+
+    /**
      * @brief Stop loom
      * @return True if successfully switched to state, otherwise false
      */
     virtual bool onStop() = 0;
+
+    /**
+     * @brief Get loom state
+     * @return the state in string format
+     */
+    virtual std::string onGetLoomState() const = 0;
 };
 }   // namespace hla
 #endif   // loom_iface_h

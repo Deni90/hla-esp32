@@ -20,6 +20,7 @@ WebServer::WebServer(ILoom& callback) : mCallback(callback) {}
 void WebServer::initialize() {
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_uri_handlers = 11;
     config.uri_match_fn = httpd_uri_match_wildcard;
 
     if (httpd_start(&server, &config) != ESP_OK) {
@@ -55,6 +56,36 @@ void WebServer::initialize() {
                                      .handler = handleDeleteLiftplan,
                                      .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &liftplanDeleteUri);
+
+    httpd_uri_t loomGetUri = {.uri = "/api/v1/loom",
+                              .method = HTTP_GET,
+                              .handler = handleGetLoomStatus,
+                              .user_ctx = &mCallback};
+    httpd_register_uri_handler(server, &loomGetUri);
+
+    httpd_uri_t loomStartPostUri = {.uri = "/api/v1/loom/start",
+                                    .method = HTTP_POST,
+                                    .handler = handleStartLoom,
+                                    .user_ctx = &mCallback};
+    httpd_register_uri_handler(server, &loomStartPostUri);
+
+    httpd_uri_t loomPausePostUri = {.uri = "/api/v1/loom/pause",
+                                    .method = HTTP_POST,
+                                    .handler = handlePauseLoom,
+                                    .user_ctx = &mCallback};
+    httpd_register_uri_handler(server, &loomPausePostUri);
+
+    httpd_uri_t loomContinuePostUri = {.uri = "/api/v1/loom/continue",
+                                       .method = HTTP_POST,
+                                       .handler = handleContinueLoom,
+                                       .user_ctx = &mCallback};
+    httpd_register_uri_handler(server, &loomContinuePostUri);
+
+    httpd_uri_t loomStopPostUri = {.uri = "/api/v1/loom/stop",
+                                   .method = HTTP_POST,
+                                   .handler = handleStopLoom,
+                                   .user_ctx = &mCallback};
+    httpd_register_uri_handler(server, &loomStopPostUri);
 
     httpd_uri_t commonGetUri = {.uri = "/*",
                                 .method = HTTP_GET,
@@ -248,4 +279,120 @@ esp_err_t WebServer::handleDeleteLiftplan(httpd_req_t* req) {
     ESP_LOGD(kTag, "handleDeleteLiftplan - Got name param: %s", name);
     callback->onDeleteLiftPlan(name);
     return httpd_resp_sendstr(req, "File deleted successfully");
+}
+
+esp_err_t WebServer::handleGetLoomStatus(httpd_req_t* req) {
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
+    std::string loomState = callback->onGetLoomState();
+    httpd_resp_set_type(req, "application/json");
+    cJSON* root = cJSON_CreateObject();
+    if (!root) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                            "Failed to allocate json");
+        return ESP_FAIL;
+    }
+    cJSON_AddStringToObject(root, "loom_state", loomState.c_str());
+    char* jsonStr = cJSON_Print(root);
+    httpd_resp_sendstr(req, jsonStr);
+    free(static_cast<void*>(jsonStr));
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t WebServer::handleStartLoom(httpd_req_t* req) {
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
+    // parse request
+    int cur_len = 0;
+    int received = 0;
+    if (req->content_len >= sizeof(gScratch)) {
+        /* Respond with 500 Internal Server Error */
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                            "content too long");
+        return ESP_FAIL;
+    }
+    while (cur_len < req->content_len) {
+        received = httpd_req_recv(req, gScratch + cur_len, req->content_len);
+        if (received <= 0) {
+            /* Respond with 500 Internal Server Error */
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                                "Failed to post control value");
+            return ESP_FAIL;
+        }
+        cur_len += received;
+    }
+    gScratch[req->content_len] = '\0';
+    cJSON* request = cJSON_Parse(gScratch);
+    // set state
+    bool result = callback->onStart(
+        cJSON_GetObjectItem(request, "liftplan")->valuestring,
+        cJSON_GetObjectItem(request, "start_position")->valueint);
+    cJSON_Delete(request);
+    // create response
+    httpd_resp_set_type(req, "application/json");
+    cJSON* response = cJSON_CreateObject();
+    if (!response) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                            "Failed to allocate json");
+        return ESP_FAIL;
+    }
+    cJSON_AddBoolToObject(response, "status", result);
+    char* jsonStr = cJSON_Print(response);
+    httpd_resp_sendstr(req, jsonStr);
+    free(static_cast<void*>(jsonStr));
+    cJSON_Delete(response);
+    return ESP_OK;
+}
+
+esp_err_t WebServer::handlePauseLoom(httpd_req_t* req) {
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
+    bool result = callback->onPause();
+    httpd_resp_set_type(req, "application/json");
+    cJSON* root = cJSON_CreateObject();
+    if (!root) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                            "Failed to allocate json");
+        return ESP_FAIL;
+    }
+    cJSON_AddBoolToObject(root, "status", result);
+    char* jsonStr = cJSON_Print(root);
+    httpd_resp_sendstr(req, jsonStr);
+    free(static_cast<void*>(jsonStr));
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t WebServer::handleContinueLoom(httpd_req_t* req) {
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
+    bool result = callback->onContinue();
+    httpd_resp_set_type(req, "application/json");
+    cJSON* root = cJSON_CreateObject();
+    if (!root) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                            "Failed to allocate json");
+        return ESP_FAIL;
+    }
+    cJSON_AddBoolToObject(root, "status", result);
+    char* jsonStr = cJSON_Print(root);
+    httpd_resp_sendstr(req, jsonStr);
+    free(static_cast<void*>(jsonStr));
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t WebServer::handleStopLoom(httpd_req_t* req) {
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
+    bool result = callback->onStop();
+    httpd_resp_set_type(req, "application/json");
+    cJSON* root = cJSON_CreateObject();
+    if (!root) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                            "Failed to allocate json");
+        return ESP_FAIL;
+    }
+    cJSON_AddBoolToObject(root, "status", result);
+    char* jsonStr = cJSON_Print(root);
+    httpd_resp_sendstr(req, jsonStr);
+    free(static_cast<void*>(jsonStr));
+    cJSON_Delete(root);
+    return ESP_OK;
 }
