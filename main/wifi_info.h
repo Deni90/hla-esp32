@@ -50,42 +50,42 @@ class WifiInfo {
      *
      * @return hostname
      */
-    std::string GetHostname() const;
+    std::string getHostname() const;
 
     /**
      * @brief Setter for hostname
      *
      * @param value hostname
      */
-    void SetHostname(const std::string& value);
+    void setHostname(const std::string& value);
 
     /**
      * @brief Getter for ssid
      *
      * @return SSID
      */
-    std::string GetSSID() const;
+    std::string getSSID() const;
 
     /**
      * @brief Setter for SSID
      *
      * @param value ssid
      */
-    void SetSSID(const std::string& value);
+    void setSSID(const std::string& value);
 
     /**
      * @brief Getter for password
      *
      * @return base64 encoded password
      */
-    std::string GetPassword() const;
+    std::string getPassword() const;
 
     /**
      * @brief Setter for password
      *
      * @param value base64 encoded password
      */
-    void SetPassword(const std::string& value);
+    void setPassword(const std::string& value);
 
   private:
     std::string mHostname;

@@ -17,7 +17,7 @@ static char gScratch[10240];
 
 WebServer::WebServer(ILoom& callback) : mCallback(callback) {}
 
-void WebServer::Initialize() {
+void WebServer::initialize() {
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.uri_match_fn = httpd_uri_match_wildcard;
@@ -28,42 +28,42 @@ void WebServer::Initialize() {
 
     httpd_uri_t wifiGetUri = {.uri = "/api/v1/wifi",
                               .method = HTTP_GET,
-                              .handler = HandleGetWifiInfo,
+                              .handler = handleGetWifiInfo,
                               .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &wifiGetUri);
 
     httpd_uri_t wifiPostUri = {.uri = "/api/v1/wifi",
                                .method = HTTP_POST,
-                               .handler = HandleSetWifiInfo,
+                               .handler = handleSetWifiInfo,
                                .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &wifiPostUri);
 
     httpd_uri_t liftplanGetUri = {.uri = "/api/v1/liftplan",
                                   .method = HTTP_GET,
-                                  .handler = HandleGetLiftplan,
+                                  .handler = handleGetLiftplan,
                                   .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &liftplanGetUri);
 
     httpd_uri_t liftplanPostUri = {.uri = "/api/v1/liftplan",
                                    .method = HTTP_POST,
-                                   .handler = HandleSetLiftplan,
+                                   .handler = handleSetLiftplan,
                                    .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &liftplanPostUri);
 
     httpd_uri_t liftplanDeleteUri = {.uri = "/api/v1/liftplan",
                                      .method = HTTP_DELETE,
-                                     .handler = HandleDeleteLiftplan,
+                                     .handler = handleDeleteLiftplan,
                                      .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &liftplanDeleteUri);
 
     httpd_uri_t commonGetUri = {.uri = "/*",
                                 .method = HTTP_GET,
-                                .handler = ResourceHandler,
+                                .handler = resourcehandler,
                                 .user_ctx = nullptr};
     httpd_register_uri_handler(server, &commonGetUri);
 }
 
-esp_err_t WebServer::ResourceHandler(httpd_req_t* req) {
+esp_err_t WebServer::resourcehandler(httpd_req_t* req) {
     std::string filepath;
     std::string uri = req->uri;
     if (uri == "/") {
@@ -81,7 +81,7 @@ esp_err_t WebServer::ResourceHandler(httpd_req_t* req) {
     }
     std::ifstream file(filepath, std::ios::binary);
     if (!file.is_open()) {
-        ESP_LOGE(kTag, "ResourceHandler - Failed to open file : %s",
+        ESP_LOGE(kTag, "Resourcehandler - Failed to open file : %s",
                  filepath.c_str());
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
                             "Failed to read existing file");
@@ -91,7 +91,7 @@ esp_err_t WebServer::ResourceHandler(httpd_req_t* req) {
         size_t bytes_read = file.gcount();
         // Send the buffer contents as HTTP response chunk
         if (httpd_resp_send_chunk(req, gScratch, bytes_read) != ESP_OK) {
-            ESP_LOGE(kTag, "ResourceHandler - File sending failed!");
+            ESP_LOGE(kTag, "Resourcehandler - File sending failed!");
             // Abort sending file
             httpd_resp_sendstr_chunk(req, NULL);
             // Respond with 500 Internal Server Error
@@ -100,16 +100,16 @@ esp_err_t WebServer::ResourceHandler(httpd_req_t* req) {
             return ESP_FAIL;
         }
     }
-    ESP_LOGI(kTag, "ResourceHandler - Sending file '%s' completed",
+    ESP_LOGI(kTag, "Resourcehandler - Sending file '%s' completed",
              filepath.c_str());
     // Respond with an empty chunk to signal HTTP response completion
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
 }
 
-esp_err_t WebServer::HandleGetWifiInfo(httpd_req_t* req) {
+esp_err_t WebServer::handleGetWifiInfo(httpd_req_t* req) {
     ILoom* callback = static_cast<ILoom*>(req->user_ctx);
-    auto maybeWifiInfo = callback->OnGetWifiInfo();
+    auto maybeWifiInfo = callback->onGetWifiInfo();
     if (!maybeWifiInfo.has_value()) {
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
                             "Failed to get WifiInfo");
@@ -118,9 +118,9 @@ esp_err_t WebServer::HandleGetWifiInfo(httpd_req_t* req) {
     auto wifiInfo = maybeWifiInfo.value();
     httpd_resp_set_type(req, "application/json");
     cJSON* root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "hostname", wifiInfo.GetHostname().c_str());
-    cJSON_AddStringToObject(root, "SSID", wifiInfo.GetSSID().c_str());
-    cJSON_AddStringToObject(root, "password", wifiInfo.GetPassword().c_str());
+    cJSON_AddStringToObject(root, "hostname", wifiInfo.getHostname().c_str());
+    cJSON_AddStringToObject(root, "SSID", wifiInfo.getSSID().c_str());
+    cJSON_AddStringToObject(root, "password", wifiInfo.getPassword().c_str());
     char* jsonStr = cJSON_Print(root);
     httpd_resp_sendstr(req, jsonStr);
     free(static_cast<void*>(jsonStr));
@@ -128,7 +128,7 @@ esp_err_t WebServer::HandleGetWifiInfo(httpd_req_t* req) {
     return ESP_OK;
 }
 
-esp_err_t WebServer::HandleSetWifiInfo(httpd_req_t* req) {
+esp_err_t WebServer::handleSetWifiInfo(httpd_req_t* req) {
     ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     int cur_len = 0;
     int received = 0;
@@ -151,28 +151,28 @@ esp_err_t WebServer::HandleSetWifiInfo(httpd_req_t* req) {
     gScratch[req->content_len] = '\0';
     cJSON* root = cJSON_Parse(gScratch);
     WifiInfo wifiInfo;
-    wifiInfo.SetHostname(cJSON_GetObjectItem(root, "hostname")->valuestring);
-    wifiInfo.SetSSID(cJSON_GetObjectItem(root, "SSID")->valuestring);
-    wifiInfo.SetPassword(cJSON_GetObjectItem(root, "password")->valuestring);
-    callback->OnSetWifiInfo(wifiInfo);
+    wifiInfo.setHostname(cJSON_GetObjectItem(root, "hostname")->valuestring);
+    wifiInfo.setSSID(cJSON_GetObjectItem(root, "SSID")->valuestring);
+    wifiInfo.setPassword(cJSON_GetObjectItem(root, "password")->valuestring);
+    callback->onSetWifiInfo(wifiInfo);
     cJSON_Delete(root);
     httpd_resp_sendstr(req, "Post control value successfully");
     return ESP_OK;
 }
 
-esp_err_t WebServer::HandleGetLiftplan(httpd_req_t* req) {
+esp_err_t WebServer::handleGetLiftplan(httpd_req_t* req) {
     ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     char query[100];
     char name[64] = {0};
     if (httpd_req_get_url_query_str(req, query, sizeof(query)) == ESP_OK) {
         if (httpd_query_key_value(query, "name", name, sizeof(name)) !=
             ESP_OK) {
-            ESP_LOGW(kTag, "HandleGetLiftplan - No 'name' param");
+            ESP_LOGW(kTag, "handleGetLiftplan - No 'name' param");
             return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
                                        "Missing 'name' param");
         }
-        ESP_LOGD(kTag, "HandleGetLiftplan - Got name param: %s", name);
-        auto liftplan = callback->OnGetLiftplan(name);
+        ESP_LOGD(kTag, "handleGetLiftplan - Got name param: %s", name);
+        auto liftplan = callback->onGetLiftplan(name);
         if (liftplan.has_value()) {
             httpd_resp_set_type(req, "application/json");
             httpd_resp_sendstr(req, liftplan.value().c_str());
@@ -181,7 +181,7 @@ esp_err_t WebServer::HandleGetLiftplan(httpd_req_t* req) {
                                 "Cannot find liftplan");
         }
     } else {
-        auto liftplans = callback->OnGetLiftplans();
+        auto liftplans = callback->onGetLiftplans();
         httpd_resp_set_type(req, "application/json");
         cJSON* root = cJSON_CreateArray();
         for (const auto& liftplan : liftplans) {
@@ -195,7 +195,7 @@ esp_err_t WebServer::HandleGetLiftplan(httpd_req_t* req) {
     return ESP_OK;
 }
 
-esp_err_t WebServer::HandleSetLiftplan(httpd_req_t* req) {
+esp_err_t WebServer::handleSetLiftplan(httpd_req_t* req) {
     ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     char query[100];
     char name[64] = {0};
@@ -208,7 +208,7 @@ esp_err_t WebServer::HandleSetLiftplan(httpd_req_t* req) {
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
                                    "Missing 'name' param");
     }
-    ESP_LOGD(kTag, "HandleSetLiftplan - Got name param: %s", name);
+    ESP_LOGD(kTag, "handleSetLiftplan - Got name param: %s", name);
     int cur_len = 0;
     int received = 0;
     if (req->content_len >= sizeof(gScratch)) {
@@ -228,11 +228,11 @@ esp_err_t WebServer::HandleSetLiftplan(httpd_req_t* req) {
         cur_len += received;
     }
     gScratch[req->content_len] = '\0';
-    callback->OnSetLiftPlan(name, gScratch);
+    callback->onSetLiftPlan(name, gScratch);
     return ESP_OK;
 }
 
-esp_err_t WebServer::HandleDeleteLiftplan(httpd_req_t* req) {
+esp_err_t WebServer::handleDeleteLiftplan(httpd_req_t* req) {
     ILoom* callback = static_cast<ILoom*>(req->user_ctx);
     char query[100];
     char name[64] = {0};
@@ -240,12 +240,12 @@ esp_err_t WebServer::HandleDeleteLiftplan(httpd_req_t* req) {
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
                                    "No query params");
     }
-    ESP_LOGD(kTag, "HandleDeleteLiftplan - Found URL query: %s", query);
+    ESP_LOGD(kTag, "handleDeleteLiftplan - Found URL query: %s", query);
     if (httpd_query_key_value(query, "name", name, sizeof(name)) != ESP_OK) {
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST,
                                    "No query params");
     }
-    ESP_LOGD(kTag, "HandleDeleteLiftplan - Got name param: %s", name);
-    callback->OnDeleteLiftPlan(name);
+    ESP_LOGD(kTag, "handleDeleteLiftplan - Got name param: %s", name);
+    callback->onDeleteLiftPlan(name);
     return httpd_resp_sendstr(req, "File deleted successfully");
 }

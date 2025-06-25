@@ -17,21 +17,21 @@ class ConfigStore {
      *
      * @param return WifiInfo if the file is successfully read
      */
-    static std::optional<WifiInfo> LoadWifiInfo();
+    static std::optional<WifiInfo> loadWifiInfo();
 
     /**
      * @brief Save wifi info
      *
      * @param wifiInfo wifi info
      */
-    static void SaveWifiInfo(const WifiInfo& wifiInfo);
+    static void saveWifiInfo(const WifiInfo& wifiInfo);
 
     /**
      * @brief Return a list of available liftplan files
      *
      * @return A vector containing liftplan filenames relative to liftplan dir
      */
-    static std::vector<std::string> ListLiftplanFiles();
+    static std::vector<std::string> listLiftplanFiles();
 
     /**
      * @brief Load liftplan
@@ -40,7 +40,7 @@ class ConfigStore {
      * @param[out] liftplan Liftplan
      * @return Content of the liftplan if successfully read
      */
-    static std::optional<std::string> LoadLiftplan(const std::string& fileName);
+    static std::optional<std::string> loadLiftplan(const std::string& fileName);
 
     /**
      * @brief Save a liftplan file to file system
@@ -50,7 +50,7 @@ class ConfigStore {
      * @return True, if the file is saved. False, if the file with a given name
      * already exists or other error...
      */
-    static bool SaveLiftPlan(const std::string& fileName,
+    static bool saveLiftPlan(const std::string& fileName,
                              const std::string& data);
 
     /**
@@ -59,7 +59,7 @@ class ConfigStore {
      * @param[in] fileName Name of the file. It should have a .json extension
      * @return True, if the file is deleted.
      */
-    static bool DeleteLiftPlan(const std::string& fileName);
+    static bool deleteLiftPlan(const std::string& fileName);
 };
 }   // namespace hla
 #endif   // config_store_h

@@ -58,7 +58,7 @@ extern "C" void WifiEventHandler(void* arg, esp_event_base_t eventBase,
 static bool InitializeWifiInStationMode(const WifiInfo& wifiInfo) {
     esp_netif_t* netif = esp_netif_create_default_wifi_sta();
     ESP_ERROR_CHECK(
-        esp_netif_set_hostname(netif, wifiInfo.GetHostname().c_str()));
+        esp_netif_set_hostname(netif, wifiInfo.getHostname().c_str()));
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -70,12 +70,12 @@ static bool InitializeWifiInStationMode(const WifiInfo& wifiInfo) {
 
     wifi_config_t wifiConfig = {};
     std::strncpy(reinterpret_cast<char*>(wifiConfig.sta.ssid),
-                 wifiInfo.GetSSID().c_str(), sizeof(wifiConfig.sta.ssid));
+                 wifiInfo.getSSID().c_str(), sizeof(wifiConfig.sta.ssid));
     unsigned char password[64];
     size_t passwordLenght;
     mbedtls_base64_decode(password, 64, &passwordLenght,
-                          (unsigned char*) wifiInfo.GetPassword().c_str(),
-                          wifiInfo.GetPassword().length());
+                          (unsigned char*) wifiInfo.getPassword().c_str(),
+                          wifiInfo.getPassword().length());
     password[passwordLenght] = '\0';
     std::strncpy(reinterpret_cast<char*>(wifiConfig.sta.password),
                  reinterpret_cast<char*>(password),
@@ -93,7 +93,7 @@ static bool InitializeWifiInStationMode(const WifiInfo& wifiInfo) {
                             pdFALSE, pdFALSE, pdMS_TO_TICKS(10000));
 
     if (bits & WIFI_CONNECTED_BIT) {
-        ESP_LOGI(kTag, "Connected to STA: %s", wifiInfo.GetSSID().c_str());
+        ESP_LOGI(kTag, "Connected to STA: %s", wifiInfo.getSSID().c_str());
         return true;
     }
 
@@ -104,7 +104,7 @@ static bool InitializeWifiInStationMode(const WifiInfo& wifiInfo) {
 static void InitializeWifiInApMode(const WifiInfo& wifiInfo) {
     esp_netif_t* netif = esp_netif_create_default_wifi_ap();
     ESP_ERROR_CHECK(
-        esp_netif_set_hostname(netif, wifiInfo.GetHostname().c_str()));
+        esp_netif_set_hostname(netif, wifiInfo.getHostname().c_str()));
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
@@ -165,7 +165,7 @@ static void SetupWifi(const WifiInfo& wifiInfo) {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     gWifiEventGroup = xEventGroupCreate();
-    if (wifiInfo.GetSSID() == "" || !InitializeWifiInStationMode(wifiInfo)) {
+    if (wifiInfo.getSSID() == "" || !InitializeWifiInStationMode(wifiInfo)) {
         InitializeWifiInApMode(wifiInfo);
         ESP_LOGI(kTag, "Setup captive portal...");
         SetupCaptivePortal();
@@ -181,10 +181,10 @@ static void SetupWifi(const WifiInfo& wifiInfo) {
 
 static void StartMdnsService(const WifiInfo& wifiInfo) {
     ESP_ERROR_CHECK(mdns_init());
-    ESP_ERROR_CHECK(mdns_hostname_set(wifiInfo.GetHostname().c_str()));
+    ESP_ERROR_CHECK(mdns_hostname_set(wifiInfo.getHostname().c_str()));
     ESP_ERROR_CHECK(mdns_instance_name_set("HandloomController web server"));
     ESP_LOGI(kTag, "mDNS started: http://%s.local",
-             wifiInfo.GetHostname().c_str());
+             wifiInfo.getHostname().c_str());
 }
 
 static bool SetupLittlefs() {
@@ -221,12 +221,12 @@ extern "C" void app_main(void) {
     }
 
     ESP_LOGI(kTag, "Initialize Wifi...");
-    WifiInfo wi = ConfigStore::LoadWifiInfo().value_or(WifiInfo());
+    WifiInfo wi = ConfigStore::loadWifiInfo().value_or(WifiInfo());
     SetupWifi(wi);
     ESP_LOGI(kTag, "Initialize Wifi... done");
     StartMdnsService(wi);
 
     ESP_LOGI(kTag, "Initialize Web server...");
-    gWebServer.Initialize();
+    gWebServer.initialize();
     ESP_LOGI(kTag, "Initialize Web server.. done");
 }

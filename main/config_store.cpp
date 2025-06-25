@@ -12,7 +12,7 @@ using hla::WifiInfo;
 static constexpr const char* kWifiInfoFile = "/littlefs/config/wifi_info.json";
 static constexpr const char* kLiftplanDir = "/littlefs/liftplans";
 
-std::optional<WifiInfo> ConfigStore::LoadWifiInfo() {
+std::optional<WifiInfo> ConfigStore::loadWifiInfo() {
     // check if file exists on kWifiInfoFile path
     if (!std::filesystem::exists(kWifiInfoFile)) {
         return std::nullopt;
@@ -24,23 +24,23 @@ std::optional<WifiInfo> ConfigStore::LoadWifiInfo() {
     cJSON* json = cJSON_Parse(buffer.str().c_str());
     // populate WifiInfo object
     WifiInfo wi;
-    wi.SetHostname(
+    wi.setHostname(
         cJSON_GetObjectItemCaseSensitive(json, "hostname")->valuestring);
-    wi.SetSSID(cJSON_GetObjectItemCaseSensitive(json, "SSID")->valuestring);
-    wi.SetPassword(
+    wi.setSSID(cJSON_GetObjectItemCaseSensitive(json, "SSID")->valuestring);
+    wi.setPassword(
         cJSON_GetObjectItemCaseSensitive(json, "password")->valuestring);
     cJSON_Delete(json);
     return wi;
 }
 
-void ConfigStore::SaveWifiInfo(const WifiInfo& wifiInfo) {
+void ConfigStore::saveWifiInfo(const WifiInfo& wifiInfo) {
     cJSON* json = cJSON_CreateObject();
     cJSON_AddItemToObject(json, "hostname",
-                          cJSON_CreateString(wifiInfo.GetHostname().c_str()));
+                          cJSON_CreateString(wifiInfo.getHostname().c_str()));
     cJSON_AddItemToObject(json, "SSID",
-                          cJSON_CreateString(wifiInfo.GetSSID().c_str()));
+                          cJSON_CreateString(wifiInfo.getSSID().c_str()));
     cJSON_AddItemToObject(json, "password",
-                          cJSON_CreateString(wifiInfo.GetPassword().c_str()));
+                          cJSON_CreateString(wifiInfo.getPassword().c_str()));
     char* jsonString = cJSON_Print(json);
     if (jsonString != nullptr) {
         std::ofstream wifiInfoFile(kWifiInfoFile);
@@ -50,7 +50,7 @@ void ConfigStore::SaveWifiInfo(const WifiInfo& wifiInfo) {
     cJSON_Delete(json);
 }
 
-std::vector<std::string> ConfigStore::ListLiftplanFiles() {
+std::vector<std::string> ConfigStore::listLiftplanFiles() {
     if (!std::filesystem::exists(kLiftplanDir)) {
         return {};
     }
@@ -63,7 +63,7 @@ std::vector<std::string> ConfigStore::ListLiftplanFiles() {
 }
 
 std::optional<std::string>
-ConfigStore::LoadLiftplan(const std::string& fileName) {
+ConfigStore::loadLiftplan(const std::string& fileName) {
     std::filesystem::path liftplanFilePath =
         std::filesystem::path(kLiftplanDir) / std::filesystem::path(fileName);
     // check if file exists on kWifiInfoFile path
@@ -77,7 +77,7 @@ ConfigStore::LoadLiftplan(const std::string& fileName) {
     return buffer.str();
 }
 
-bool ConfigStore::SaveLiftPlan(const std::string& fileName,
+bool ConfigStore::saveLiftPlan(const std::string& fileName,
                                const std::string& data) {
     std::filesystem::path liftplanFilePath =
         std::filesystem::path(kLiftplanDir) / std::filesystem::path(fileName);
@@ -97,7 +97,7 @@ bool ConfigStore::SaveLiftPlan(const std::string& fileName,
     return true;
 }
 
-bool ConfigStore::DeleteLiftPlan(const std::string& fileName) {
+bool ConfigStore::deleteLiftPlan(const std::string& fileName) {
     std::filesystem::path liftplanFilePath =
         std::filesystem::path(kLiftplanDir) / std::filesystem::path(fileName);
     return remove(liftplanFilePath.c_str()) == 0;

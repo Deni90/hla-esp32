@@ -15,22 +15,22 @@ class Loom : public ILoom, public ButtonHandler {
     Loom();
     ~Loom() = default;
 
-    std::optional<WifiInfo> OnGetWifiInfo() const override;
-    void OnSetWifiInfo(const WifiInfo& wifiInfo) override;
-    std::vector<std::string> OnGetLiftplans() const override;
+    std::optional<WifiInfo> onGetWifiInfo() const override;
+    void onSetWifiInfo(const WifiInfo& wifiInfo) override;
+    std::vector<std::string> onGetLiftplans() const override;
     std::optional<std::string>
-    OnGetLiftplan(const std::string& fileName) override;
-    bool OnSetLiftPlan(const std::string& fileName,
+    onGetLiftplan(const std::string& fileName) override;
+    bool onSetLiftPlan(const std::string& fileName,
                        const std::string& data) override;
-    bool OnDeleteLiftPlan(const std::string& fileName) override;
-    bool OnStart(const std::string& liftplanFileName,
+    bool onDeleteLiftPlan(const std::string& fileName) override;
+    bool onStart(const std::string& liftplanFileName,
                  unsigned int startPosition) override;
-    bool OnPause() override;
-    bool OnStop() override;
+    bool onPause() override;
+    bool onStop() override;
 
   private:
     void onButtonPressed(gpio_num_t gpio) override;
-    void ResetLiftplan();
+    void resetLiftplan();
 
     State mState;
     std::string mLiftplanName;

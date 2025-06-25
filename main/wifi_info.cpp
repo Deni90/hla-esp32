@@ -6,14 +6,14 @@ WifiInfo::WifiInfo(const std::string& hostname, const std::string& ssid,
                    const std::string& password)
     : mHostname(hostname), mSsid(ssid), mPassword(password) {}
 
-std::string WifiInfo::GetHostname() const { return mHostname; }
+std::string WifiInfo::getHostname() const { return mHostname; }
 
-void WifiInfo::SetHostname(const std::string& value) { mHostname = value; }
+void WifiInfo::setHostname(const std::string& value) { mHostname = value; }
 
-std::string WifiInfo::GetSSID() const { return mSsid; }
+std::string WifiInfo::getSSID() const { return mSsid; }
 
-void WifiInfo::SetSSID(const std::string& value) { mSsid = value; }
+void WifiInfo::setSSID(const std::string& value) { mSsid = value; }
 
-std::string WifiInfo::GetPassword() const { return mPassword; }
+std::string WifiInfo::getPassword() const { return mPassword; }
 
-void WifiInfo::SetPassword(const std::string& value) { mPassword = value; }
+void WifiInfo::setPassword(const std::string& value) { mPassword = value; }

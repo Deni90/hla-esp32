@@ -22,31 +22,31 @@ Loom::Loom()
     : ButtonHandler({NEXT_BUTTON, PREV_BUTTON}), mState(State::idle),
       mLiftplanName(""), mLiftplanCursor(nullptr) {}
 
-std::optional<WifiInfo> Loom::OnGetWifiInfo() const {
-    return ConfigStore::LoadWifiInfo();
+std::optional<WifiInfo> Loom::onGetWifiInfo() const {
+    return ConfigStore::loadWifiInfo();
 }
 
-void Loom::OnSetWifiInfo(const WifiInfo& wifiInfo) {
-    ConfigStore::SaveWifiInfo(wifiInfo);
+void Loom::onSetWifiInfo(const WifiInfo& wifiInfo) {
+    ConfigStore::saveWifiInfo(wifiInfo);
 }
 
-std::vector<std::string> Loom::OnGetLiftplans() const {
-    return ConfigStore::ListLiftplanFiles();
+std::vector<std::string> Loom::onGetLiftplans() const {
+    return ConfigStore::listLiftplanFiles();
 }
 
-std::optional<std::string> Loom::OnGetLiftplan(const std::string& fileName) {
-    return ConfigStore::LoadLiftplan(fileName);
+std::optional<std::string> Loom::onGetLiftplan(const std::string& fileName) {
+    return ConfigStore::loadLiftplan(fileName);
 }
 
-bool Loom::OnSetLiftPlan(const std::string& fileName, const std::string& data) {
-    return ConfigStore::SaveLiftPlan(fileName, data);
+bool Loom::onSetLiftPlan(const std::string& fileName, const std::string& data) {
+    return ConfigStore::saveLiftPlan(fileName, data);
 }
 
-bool Loom::OnDeleteLiftPlan(const std::string& fileName) {
-    return ConfigStore::DeleteLiftPlan(fileName);
+bool Loom::onDeleteLiftPlan(const std::string& fileName) {
+    return ConfigStore::deleteLiftPlan(fileName);
 }
 
-bool Loom::OnStart(const std::string& liftplanFileName,
+bool Loom::onStart(const std::string& liftplanFileName,
                    unsigned int startPosition) {
     // it is only possible to switch to running from idle state
     if (mState != State::idle) {
@@ -55,7 +55,7 @@ bool Loom::OnStart(const std::string& liftplanFileName,
         return false;
     }
     // load the raw liftplan from file
-    auto maybeLiftplan = ConfigStore::LoadLiftplan(liftplanFileName);
+    auto maybeLiftplan = ConfigStore::loadLiftplan(liftplanFileName);
     if (!maybeLiftplan.has_value()) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'running' state. Liftplan not found.");
@@ -64,7 +64,7 @@ bool Loom::OnStart(const std::string& liftplanFileName,
     auto liftplan = maybeLiftplan.value();
     // parse the liftplan - and load it
     if (mLiftplan.length()) {
-        ResetLiftplan();
+        resetLiftplan();
     }
     cJSON* root = cJSON_Parse(liftplan.c_str());
     if (!root || !cJSON_IsArray(root)) {
@@ -99,7 +99,7 @@ bool Loom::OnStart(const std::string& liftplanFileName,
     return true;
 }
 
-bool Loom::OnPause() {
+bool Loom::onPause() {
     if (mState != State::running) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'pause' state. Not in 'running' state.");
@@ -110,14 +110,14 @@ bool Loom::OnPause() {
     return true;
 }
 
-bool Loom::OnStop() {
+bool Loom::onStop() {
     // if in "idle" there is nothing to do
     if (mState == State::idle) {
         return true;
     }
     // TODO raise all shatfs back to idle position
     // clear the liftplan buffer, ...
-    ResetLiftplan();
+    resetLiftplan();
     // switch back to idle state
     ESP_LOGD(kTag, "Switching to 'idle' state.");
     mState = State::idle;
@@ -140,7 +140,7 @@ void Loom::onButtonPressed(gpio_num_t gpio) {
     ESP_LOGI(kTag, "loom, move to 0x%02x", mLiftplanCursor.value());
 }
 
-void Loom::ResetLiftplan() {
+void Loom::resetLiftplan() {
     mLiftplanName.clear();
     mLiftplan.empty();
     mLiftplanCursor.reset();

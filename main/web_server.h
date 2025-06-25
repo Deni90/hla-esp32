@@ -25,15 +25,15 @@ class WebServer {
      *
      * Initialize web server paths and load resources
      */
-    void Initialize();
+    void initialize();
 
   private:
-    static esp_err_t ResourceHandler(httpd_req_t* req);
-    static esp_err_t HandleGetWifiInfo(httpd_req_t* req);
-    static esp_err_t HandleSetWifiInfo(httpd_req_t* req);
-    static esp_err_t HandleGetLiftplan(httpd_req_t* req);
-    static esp_err_t HandleSetLiftplan(httpd_req_t* req);
-    static esp_err_t HandleDeleteLiftplan(httpd_req_t* req);
+    static esp_err_t resourcehandler(httpd_req_t* req);
+    static esp_err_t handleGetWifiInfo(httpd_req_t* req);
+    static esp_err_t handleSetWifiInfo(httpd_req_t* req);
+    static esp_err_t handleGetLiftplan(httpd_req_t* req);
+    static esp_err_t handleSetLiftplan(httpd_req_t* req);
+    static esp_err_t handleDeleteLiftplan(httpd_req_t* req);
 
     ILoom& mCallback;
 };
