@@ -39,6 +39,7 @@ class WebServer {
     static esp_err_t handlePauseLoom(httpd_req_t* req);
     static esp_err_t handleContinueLoom(httpd_req_t* req);
     static esp_err_t handleStopLoom(httpd_req_t* req);
+    static esp_err_t handleLoomLiftplanIndex(httpd_req_t* req);
 
     ILoom& mCallback;
 };

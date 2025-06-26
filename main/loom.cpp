@@ -20,7 +20,8 @@ static const char* kTag = "loom";
 
 Loom::Loom()
     : ButtonHandler({NEXT_BUTTON, PREV_BUTTON}), mState(State::idle),
-      mLiftplanName(""), mLiftplanCursor(nullptr), mLiftplanIndex(-1) {}
+      mLiftplanName(""), mLiftplanCursor(nullptr),
+      mLiftplanIndex(std::nullopt) {}
 
 std::optional<WifiInfo> Loom::onGetWifiInfo() const {
     return ConfigStore::loadWifiInfo();
@@ -149,6 +150,10 @@ std::string Loom::onGetLoomState() const {
     return "";
 }
 
+std::optional<unsigned int> Loom::onGetActiveLiftplanIndex() const {
+    return mLiftplanIndex;
+}
+
 void Loom::onButtonPressed(gpio_num_t gpio) {
     ESP_LOGD(kTag, "Pressed GPIO %d", gpio);
     if (mState != State::running || !mLiftplanCursor.isValid()) {
@@ -156,12 +161,12 @@ void Loom::onButtonPressed(gpio_num_t gpio) {
     }
     if (gpio == NEXT_BUTTON) {
         mLiftplanCursor = mLiftplanCursor.next();
-        ++mLiftplanIndex;
-        mLiftplanIndex %= mLiftplan.length();
+        ++(*mLiftplanIndex);
+        (*mLiftplanIndex) %= mLiftplan.length();
     } else if (gpio == PREV_BUTTON) {
         mLiftplanCursor = mLiftplanCursor.prev();
         if (mLiftplanIndex > 0) {
-            --mLiftplanIndex;
+            --(*mLiftplanIndex);
         } else {
             mLiftplanIndex = mLiftplan.length() - 1;
         }
@@ -176,4 +181,5 @@ void Loom::resetLiftplan() {
     mLiftplanName.clear();
     mLiftplan.empty();
     mLiftplanCursor.reset();
+    mLiftplanIndex = std::nullopt;
 }

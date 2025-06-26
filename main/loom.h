@@ -1,6 +1,8 @@
 #ifndef loom_h
 #define loom_h
 
+#include <optional>
+
 #include "button_handler.h"
 #include "circular_deque.h"
 #include "loom_iface.h"
@@ -29,6 +31,7 @@ class Loom : public ILoom, public ButtonHandler {
     bool onContinue() override;
     bool onStop() override;
     std::string onGetLoomState() const override;
+    std::optional<unsigned int> onGetActiveLiftplanIndex() const override;
 
   private:
     void onButtonPressed(gpio_num_t gpio) override;
@@ -38,7 +41,7 @@ class Loom : public ILoom, public ButtonHandler {
     std::string mLiftplanName;
     CircularDeque<uint8_t> mLiftplan;
     CircularDeque<uint8_t>::Cursor mLiftplanCursor;
-    int mLiftplanIndex;
+    std::optional<unsigned int> mLiftplanIndex;
 };
 }   // namespace hla
 #endif   // loom_h

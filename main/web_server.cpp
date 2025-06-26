@@ -20,7 +20,7 @@ WebServer::WebServer(ILoom& callback) : mCallback(callback) {}
 void WebServer::initialize() {
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 11;
+    config.max_uri_handlers = 12;
     config.uri_match_fn = httpd_uri_match_wildcard;
 
     if (httpd_start(&server, &config) != ESP_OK) {
@@ -86,6 +86,12 @@ void WebServer::initialize() {
                                    .handler = handleStopLoom,
                                    .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &loomStopPostUri);
+
+    httpd_uri_t loomLiftplanIndexPostUri = {.uri = "/api/v1/loom/liftplan_index",
+                                   .method = HTTP_GET,
+                                   .handler = handleLoomLiftplanIndex,
+                                   .user_ctx = &mCallback};
+    httpd_register_uri_handler(server, &loomLiftplanIndexPostUri);
 
     httpd_uri_t commonGetUri = {.uri = "/*",
                                 .method = HTTP_GET,
@@ -390,6 +396,25 @@ esp_err_t WebServer::handleStopLoom(httpd_req_t* req) {
         return ESP_FAIL;
     }
     cJSON_AddBoolToObject(root, "status", result);
+    char* jsonStr = cJSON_Print(root);
+    httpd_resp_sendstr(req, jsonStr);
+    free(static_cast<void*>(jsonStr));
+    cJSON_Delete(root);
+    return ESP_OK;
+}
+
+esp_err_t WebServer::handleLoomLiftplanIndex(httpd_req_t* req) {
+    ILoom* callback = static_cast<ILoom*>(req->user_ctx);
+    auto maybeLiftplanIndex = callback->onGetActiveLiftplanIndex();
+    if (!maybeLiftplanIndex.has_value()) {
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR,
+                            "Failed to get active liftplan index");
+        return ESP_FAIL;
+    }
+    auto liftplanIndex = maybeLiftplanIndex.value();
+    httpd_resp_set_type(req, "application/json");
+    cJSON* root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, "index", liftplanIndex);
     char* jsonStr = cJSON_Print(root);
     httpd_resp_sendstr(req, jsonStr);
     free(static_cast<void*>(jsonStr));

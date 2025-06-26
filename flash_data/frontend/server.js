@@ -89,6 +89,22 @@ class LiftPlan {
             this.addRow(parseInt(value.replace('0x', ''), 16));
         });
     }
+
+    highlightRow(index) {
+        let liftplanTable = document.getElementById(this.name);
+        if (index >= liftplanTable.rows.length) {
+            return;
+        }
+        for (var r = 0, n = liftplanTable.rows.length; r < n; r++) {
+            for (var c = 0, m = liftplanTable.rows[r].cells.length; c < m; c++) {
+                if (r == index) {
+                    liftplanTable.rows[r].cells[c].style["boxShadow"] = "0 0 10px rgba(0, 0, 255, 1)";
+                } else {
+                    liftplanTable.rows[r].cells[c].style["boxShadow"] = "0 1px 3px rgba(0, 0, 0, .2)";
+                }
+            }
+        }
+    }
 }
 
 var wifiInfo = null;
@@ -125,7 +141,7 @@ function openMainTab(id, tabName) {
     if (tabName == "Dashboard") {
         getLoomState();
         handleLiftplanSelection();
-    } else if(tabName == "Settings") {
+    } else if (tabName == "Settings") {
         getWifiInfo();
     }
     openTab(id, tabName)
@@ -210,8 +226,8 @@ function getLiftplan(name, dest) {
             return response.json();
         })
         .then(data => {
-            let liftplanPreviewTable = new LiftPlan(dest, true);
-            liftplanPreviewTable.populateFromArray(data);
+            let liftplanTable = new LiftPlan(dest, true);
+            liftplanTable.populateFromArray(data);
         })
         .catch(error => {
             console.error('There was a problem with the getting liftplan:', error);
@@ -355,18 +371,30 @@ function handleLoomState(state) {
         document.getElementById("continueButton").style.display = "none";
         document.getElementById("stopButton").style.display = "none";
         document.getElementById("selectLiftplan").disabled = false;
+        if (loomIntervalId != 0) {
+            clearInterval(loomIntervalId);
+            loomIntervalId = 0;
+        }
     } else if (state == "running") {
         document.getElementById("startButton").style.display = "none";
         document.getElementById("pauseButton").style.display = "block";
         document.getElementById("continueButton").style.display = "none";
         document.getElementById("stopButton").style.display = "block";
         document.getElementById("selectLiftplan").disabled = true;
+        if (loomIntervalId == 0) {
+            loomIntervalId = setInterval(getLoomLiftplanIndex, 1000);
+        }
+
     } else if (state == "paused") {
         document.getElementById("startButton").style.display = "none";
         document.getElementById("pauseButton").style.display = "none";
         document.getElementById("continueButton").style.display = "block";
         document.getElementById("stopButton").style.display = "block";
         document.getElementById("selectLiftplan").disabled = true;
+        if (loomIntervalId != 0) {
+            clearInterval(loomIntervalId);
+            loomIntervalId = 0;
+        }
     }
 }
 
@@ -447,5 +475,23 @@ function stopLoom() {
             if (data.status == true) {
                 handleLoomState("idle");
             }
+        });
+}
+
+function getLoomLiftplanIndex() {
+    fetch('/api/v1/loom/liftplan_index')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Loom liftplan index =  " + JSON.stringify(data));
+            liftplanActiveTable = new LiftPlan("liftplanActiveTable", true);
+            liftplanActiveTable.highlightRow(data.index);
+        })
+        .catch(error => {
+            console.error('There was a problem with the getting loom liftplan index:', error);
         });
 }
