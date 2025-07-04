@@ -100,6 +100,12 @@ class ILoom {
      * @return The index if the loom is in running state
      */
     virtual std::optional<unsigned int> onGetActiveLiftplanIndex() const = 0;
+
+    /**
+     * @brief Get the name of actively running liftplan
+     * @return The name if the loom is in running state
+     */
+    virtual std::optional<std::string> onGetActiveLiftplanName() const = 0;
 };
 }   // namespace hla
 #endif   // loom_iface_h

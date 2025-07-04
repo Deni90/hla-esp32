@@ -32,13 +32,14 @@ class Loom : public ILoom, public ButtonHandler {
     bool onStop() override;
     std::string onGetLoomState() const override;
     std::optional<unsigned int> onGetActiveLiftplanIndex() const override;
+    std::optional<std::string> onGetActiveLiftplanName() const override;
 
   private:
     void onButtonPressed(gpio_num_t gpio) override;
     void resetLiftplan();
 
     State mState;
-    std::string mLiftplanName;
+    std::optional<std::string> mLiftplanName;
     CircularDeque<uint8_t> mLiftplan;
     CircularDeque<uint8_t>::Cursor mLiftplanCursor;
     std::optional<unsigned int> mLiftplanIndex;

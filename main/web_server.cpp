@@ -87,10 +87,11 @@ void WebServer::initialize() {
                                    .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &loomStopPostUri);
 
-    httpd_uri_t loomLiftplanIndexPostUri = {.uri = "/api/v1/loom/liftplan_index",
-                                   .method = HTTP_GET,
-                                   .handler = handleLoomLiftplanIndex,
-                                   .user_ctx = &mCallback};
+    httpd_uri_t loomLiftplanIndexPostUri = {.uri =
+                                                "/api/v1/loom/liftplan_index",
+                                            .method = HTTP_GET,
+                                            .handler = handleLoomLiftplanIndex,
+                                            .user_ctx = &mCallback};
     httpd_register_uri_handler(server, &loomLiftplanIndexPostUri);
 
     httpd_uri_t commonGetUri = {.uri = "/*",
@@ -298,6 +299,12 @@ esp_err_t WebServer::handleGetLoomStatus(httpd_req_t* req) {
         return ESP_FAIL;
     }
     cJSON_AddStringToObject(root, "loom_state", loomState.c_str());
+    auto maybeLiftplanName = callback->onGetActiveLiftplanName();
+    if (maybeLiftplanName.has_value()) {
+        cJSON_AddStringToObject(root, "active_liftplan",
+                                maybeLiftplanName.value().c_str());
+    }
+
     char* jsonStr = cJSON_Print(root);
     httpd_resp_sendstr(req, jsonStr);
     free(static_cast<void*>(jsonStr));

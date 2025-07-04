@@ -110,6 +110,7 @@ class LiftPlan {
 var wifiInfo = null;
 var liftplanEditableTable = new LiftPlan("liftplanEditableTable");
 var loomIntervalId = 0;
+var loomInfo = null;
 
 function openTab(id, tabName) {
     var i, tabcontent, tablinks;
@@ -345,9 +346,19 @@ function handleLiftplanSelection() {
                 liftplanSelect.appendChild(option);
             });
             if (data.length > 0) {
+                var index = 0;
                 // fetch the first liftplan
                 document.getElementById("activeLiftplanContainer").style.display = "flex";
-                getLiftplan(data[0], "liftplanActiveTable");
+                if (loomInfo && loomInfo.loom_state == "running") {
+                    for (var i = 0; i < liftplanSelect.options.length; i++) {
+                        if (liftplanSelect.options[i].value === loomInfo.active_liftplan) {
+                            liftplanSelect.selectedIndex = i;
+                            index = i;
+                            break;
+                        }
+                    }
+                }
+                getLiftplan(data[index], "liftplanActiveTable");
             } else {
                 document.getElementById("activeLiftplanContainer").style.display = "none";
             }
@@ -408,7 +419,9 @@ function getLoomState() {
         })
         .then(data => {
             console.log("Loom state =  " + JSON.stringify(data));
-            handleLoomState(data.loom_state);
+            loomInfo = data;
+            handleLoomState(loomInfo.loom_state);
+
         })
         .catch(error => {
             console.error('There was a problem with the getting loom state:', error);

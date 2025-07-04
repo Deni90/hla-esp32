@@ -20,7 +20,7 @@ static const char* kTag = "loom";
 
 Loom::Loom()
     : ButtonHandler({NEXT_BUTTON, PREV_BUTTON}), mState(State::idle),
-      mLiftplanName(""), mLiftplanCursor(nullptr),
+      mLiftplanName(std::nullopt), mLiftplanCursor(nullptr),
       mLiftplanIndex(std::nullopt) {}
 
 std::optional<WifiInfo> Loom::onGetWifiInfo() const {
@@ -88,6 +88,7 @@ bool Loom::onStart(const std::string& liftplanFileName,
         mLiftplan.pushBack(value);
     }
     cJSON_Delete(root);
+    mLiftplanName = liftplanFileName;
     // setup the cursor
     mLiftplanCursor = mLiftplan.frontCursor();
     for (unsigned int i = 0; i < startPosition; ++i) {
@@ -154,6 +155,10 @@ std::optional<unsigned int> Loom::onGetActiveLiftplanIndex() const {
     return mLiftplanIndex;
 }
 
+std::optional<std::string> Loom::onGetActiveLiftplanName() const {
+    return mLiftplanName;
+}
+
 void Loom::onButtonPressed(gpio_num_t gpio) {
     ESP_LOGD(kTag, "Pressed GPIO %d", gpio);
     if (mState != State::running || !mLiftplanCursor.isValid()) {
@@ -178,7 +183,7 @@ void Loom::onButtonPressed(gpio_num_t gpio) {
 }
 
 void Loom::resetLiftplan() {
-    mLiftplanName.clear();
+    mLiftplanName.reset();
     mLiftplan.empty();
     mLiftplanCursor.reset();
     mLiftplanIndex = std::nullopt;
