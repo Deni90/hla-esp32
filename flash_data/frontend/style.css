@@ -278,6 +278,20 @@ input[type="text"]:disabled {
     background-color: #333333;
 }
 
+.liftplan-table-legend {
+    margin: 0 0 0.5em 0;
+}
+
+.liftplan-table-legend td {
+    width: 2em;
+    height: 2em;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid #f9f9f9;
+    border-radius: .3125em;
+    cursor: default;
+}
+
 .buttons-container {
     display: flex;
     /* width: 70%; */

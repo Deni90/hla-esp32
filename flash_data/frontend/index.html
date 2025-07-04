@@ -16,7 +16,8 @@
 	<div id="mainTab" class="main-tab">
 		<button id="mainTabButtonDashboard" onclick="openMainTab('mainTab', 'Dashboard')">Dashboard</button>
 		<button id="mainTabButtonLiftplan" onclick="openMainTab('mainTab', 'Liftplan')">Liftplan editor</button>
-		<button class="tablinks" id="mainTabButtonSettings" onclick="openMainTab('mainTab', 'Settings')">Settings</button>
+		<button class="tablinks" id="mainTabButtonSettings"
+			onclick="openMainTab('mainTab', 'Settings')">Settings</button>
 	</div>
 
 	<!-- Dashboard tab -->
@@ -33,13 +34,27 @@
 		</div>
 		<div class="field-container-no-height" id="activeLiftplanContainer">
 			<label for="liftplan-table">Liftplan:</label>
-			<table id="liftplanActiveTable" class="liftplan-table"></table>
+			<div>
+				<table id="liftplanTableLegend" class="liftplan-table-legend">
+					<tr>
+						<td>1</td>
+						<td>2</td>
+						<td>3</td>
+						<td>4</td>
+						<td>5</td>
+						<td>6</td>
+						<td>7</td>
+						<td>8</td>
+					</tr>
+				</table>
+				<table id="liftplanActiveTable" class="liftplan-table"></table>
+			</div>
 			</table>
 		</div>
 		<div class="field-container-no-height">
-			<button class="button" id="startButton"onclick="startLoom()">Start</button>
-			<button class="button" id="pauseButton"onclick="pauseLoom()">Pause</button>
-			<button class="button" id="continueButton"onclick="continueLoom()">Continue</button>
+			<button class="button" id="startButton" onclick="startLoom()">Start</button>
+			<button class="button" id="pauseButton" onclick="pauseLoom()">Pause</button>
+			<button class="button" id="continueButton" onclick="continueLoom()">Continue</button>
 			<button class="delete-button" id="stopButton" onclick="stopLoom()">Stop</button>
 		</div>
 	</div>
@@ -75,7 +90,21 @@
 			</div>
 			<div class="field-container-no-height">
 				<label for="liftplan-table">Liftplan:</label>
-				<table id="liftplanEditableTable" class="liftplan-table"></table>
+				<div>
+					<table id="liftplanEditableTableLegend" class="liftplan-table-legend">
+						<tr>
+							<td>1</td>
+							<td>2</td>
+							<td>3</td>
+							<td>4</td>
+							<td>5</td>
+							<td>6</td>
+							<td>7</td>
+							<td>8</td>
+						</tr>
+					</table>
+					<table id="liftplanEditableTable" class="liftplan-table"></table>
+				</div>
 			</div>
 			<div class="field-container">
 				<button class="button" name="buttonSaveLiftplan"
@@ -89,12 +118,27 @@
 		<div id="liftplanTabManageExisting" class="tabcontent">
 			<div class="field-container">
 				<label for="liftplanList">Liftplan(s):</label>
-				<select class="select" name="selectLiftplanPreview" id="selectLiftplanPreview" onchange="updatePreviewSelect()">
+				<select class="select" name="selectLiftplanPreview" id="selectLiftplanPreview"
+					onchange="updatePreviewSelect()">
 				</select>
 			</div>
 			<div class="field-container-no-height" id="previewContainer">
 				<label for="liftplan-table">Liftplan preview:</label>
-				<table id="liftplanPreviewTable" class="liftplan-table"></table>
+				<div>
+					<table id="liftplanPreviewTableLegend" class="liftplan-table-legend">
+						<tr>
+							<td>1</td>
+							<td>2</td>
+							<td>3</td>
+							<td>4</td>
+							<td>5</td>
+							<td>6</td>
+							<td>7</td>
+							<td>8</td>
+						</tr>
+					</table>
+					<table id="liftplanPreviewTable" class="liftplan-table"></table>
+				</div>
 			</div>
 			<div class="field-container">
 				<button class="delete-button" name="buttonDeleteLiftplan" id="buttonDeleteLiftplan"
