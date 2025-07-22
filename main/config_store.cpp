@@ -4,13 +4,17 @@
 #include <iostream>
 #include <sstream>
 
+#include "cJSON.h"
+
 #include "config_store.h"
 
 using hla::ConfigStore;
+using hla::LoomInfo;
 using hla::WifiInfo;
 
 static constexpr const char* kWifiInfoFile = "/littlefs/config/wifi_info.json";
 static constexpr const char* kLiftplanDir = "/littlefs/liftplans";
+static constexpr const char* kLoomInfoFile = "/littlefs/saved_state.json";
 
 std::optional<WifiInfo> ConfigStore::loadWifiInfo() {
     // check if file exists on kWifiInfoFile path
@@ -98,7 +102,70 @@ bool ConfigStore::saveLiftPlan(const std::string& fileName,
 }
 
 bool ConfigStore::deleteLiftPlan(const std::string& fileName) {
-    std::filesystem::path liftplanFilePath =
+    const std::filesystem::path liftplanFilePath =
         std::filesystem::path(kLiftplanDir) / std::filesystem::path(fileName);
     return remove(liftplanFilePath.c_str()) == 0;
 }
+
+std::optional<LoomInfo> ConfigStore::loadLoomInfo() {
+    // check if file exists on kLoomInfoFile path
+    if (!std::filesystem::exists(kLoomInfoFile)) {
+        return std::nullopt;
+    }
+    // read and parse JSON file
+    std::ifstream loomInfoFile(kLoomInfoFile);
+    std::stringstream buffer;
+    buffer << loomInfoFile.rdbuf();
+    cJSON* json = cJSON_Parse(buffer.str().c_str());
+    // populate LoomInfo object
+    LoomInfo li;
+    std::string loomState =
+        cJSON_GetObjectItemCaseSensitive(json, "state")->valuestring;
+    if (loomState == "idle") {
+        li.state = LoomState::idle;
+    } else if (loomState == "running") {
+        li.state = LoomState::running;
+    } else if (loomState == "paused") {
+        li.state = LoomState::paused;
+    }
+    cJSON* liftplanName = cJSON_GetObjectItemCaseSensitive(json, "liftplan");
+    if (liftplanName) {
+        li.liftplanName = liftplanName->valuestring;
+    }
+    cJSON* liftplanIndex = cJSON_GetObjectItemCaseSensitive(json, "index");
+    if (liftplanIndex) {
+        li.liftplanIndex = liftplanIndex->valueint;
+    }
+    cJSON_Delete(json);
+    return li;
+}
+
+bool ConfigStore::saveLoomInfo(const LoomInfo loomInfo) {
+    if (!std::filesystem::exists(kLiftplanDir)) {
+        if (!std::filesystem::create_directory(kLiftplanDir)) {
+            return false;
+        }
+    }
+    cJSON* json = cJSON_CreateObject();
+    cJSON_AddItemToObject(
+        json, "state", cJSON_CreateString(loomStateToString(loomInfo.state)));
+    if (loomInfo.liftplanName.has_value()) {
+        cJSON_AddItemToObject(
+            json, "liftplan",
+            cJSON_CreateString(loomInfo.liftplanName.value().c_str()));
+    }
+    if (loomInfo.liftplanIndex.has_value()) {
+        cJSON_AddItemToObject(
+            json, "index", cJSON_CreateNumber(loomInfo.liftplanIndex.value()));
+    }
+    char* jsonString = cJSON_Print(json);
+    if (jsonString != nullptr) {
+        std::ofstream loomInfoFile(kLoomInfoFile);
+        loomInfoFile << jsonString;
+        cJSON_free(jsonString);
+    }
+    cJSON_Delete(json);
+    return true;
+}
+
+bool ConfigStore::deleteLoomInfo() { return remove(kLoomInfoFile) == 0; }

@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 
+#include "loom_info.h"
 #include "wifi_info.h"
 
 namespace hla {
@@ -60,6 +61,26 @@ class ConfigStore {
      * @return True, if the file is deleted.
      */
     static bool deleteLiftPlan(const std::string& fileName);
+
+    /**
+     * @brief Load loom info
+     *
+     * @param return LoomInfo if the file is successfully read
+     */
+    static std::optional<LoomInfo> loadLoomInfo();
+
+    /**
+     * @brief Save loom info
+     *
+     * @param loomInfo loom info
+     * @return True, if the file is saved. False, if some error happened
+     */
+    static bool saveLoomInfo(const LoomInfo loomInfo);
+
+    /**
+     * @brief Delete loom info file
+     */
+    static bool deleteLoomInfo();
 };
 }   // namespace hla
 #endif   // config_store_h
