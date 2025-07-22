@@ -16,6 +16,8 @@ class Loom : public ILoom, public ButtonHandler {
     Loom();
     ~Loom() = default;
 
+    void initialize(const LoomInfo& loomInfo);
+
     std::optional<WifiInfo> onGetWifiInfo() const override;
     void onSetWifiInfo(const WifiInfo& wifiInfo) override;
     std::vector<std::string> onGetLiftplans() const override;
@@ -36,6 +38,8 @@ class Loom : public ILoom, public ButtonHandler {
   private:
     void onButtonPressed(gpio_num_t gpio) override;
     void resetLiftplan();
+    bool loadLiftplan(const std::string& liftplanFileName,
+                      unsigned int startPosition);
 
     LoomInfo mLoomInfo;
     CircularDeque<uint8_t> mLiftplan;

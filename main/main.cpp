@@ -11,11 +11,13 @@
 #include "config_store.h"
 #include "dns_server.h"
 #include "loom.h"
+#include "loom_info.h"
 #include "web_server.h"
 #include "wifi_info.h"
 
 using hla::ConfigStore;
 using hla::Loom;
+using hla::LoomInfo;
 using hla::WebServer;
 using hla::WifiInfo;
 
@@ -229,4 +231,9 @@ extern "C" void app_main(void) {
     ESP_LOGI(kTag, "Initialize Web server...");
     gWebServer.initialize();
     ESP_LOGI(kTag, "Initialize Web server.. done");
+
+    ESP_LOGI(kTag, "Initialize Loom...");
+    auto maybeLoomInfo = ConfigStore::loadLoomInfo();
+    gLoom.initialize(maybeLoomInfo.value_or(LoomInfo()));
+    ESP_LOGI(kTag, "Initialize Loom... done");
 }
