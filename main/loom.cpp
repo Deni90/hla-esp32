@@ -19,9 +19,7 @@ using hla::WifiInfo;
 static const char* kTag = "loom";
 
 Loom::Loom()
-    : ButtonHandler({NEXT_BUTTON, PREV_BUTTON}), mState(State::idle),
-      mLiftplanName(std::nullopt), mLiftplanCursor(nullptr),
-      mLiftplanIndex(std::nullopt) {}
+    : ButtonHandler({NEXT_BUTTON, PREV_BUTTON}), mLiftplanCursor(nullptr) {}
 
 std::optional<WifiInfo> Loom::onGetWifiInfo() const {
     return ConfigStore::loadWifiInfo();
@@ -50,7 +48,7 @@ bool Loom::onDeleteLiftPlan(const std::string& fileName) {
 bool Loom::onStart(const std::string& liftplanFileName,
                    unsigned int startPosition) {
     // it is only possible to switch to running from idle state
-    if (mState != State::idle) {
+    if (mLoomInfo.state != LoomState::idle) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'running' state. Not in 'idle' state.");
         return false;
@@ -88,46 +86,46 @@ bool Loom::onStart(const std::string& liftplanFileName,
         mLiftplan.pushBack(value);
     }
     cJSON_Delete(root);
-    mLiftplanName = liftplanFileName;
+    mLoomInfo.liftplanName = liftplanFileName;
     // setup the cursor
     mLiftplanCursor = mLiftplan.frontCursor();
     for (unsigned int i = 0; i < startPosition; ++i) {
         mLiftplanCursor = mLiftplanCursor.next();
     }
-    mLiftplanIndex = startPosition % mLiftplan.length();
+    mLoomInfo.liftplanIndex = startPosition % mLiftplan.length();
     // TODO move shafts to match the first element from the liftplan
     ESP_LOGI(kTag, "Move shatfs to 0x%02x", mLiftplanCursor.value());
 
     ESP_LOGD(kTag, "Switching to 'running' state.");
-    mState = State::running;
+    mLoomInfo.state = LoomState::running;
     return true;
 }
 
 bool Loom::onPause() {
-    if (mState != State::running) {
+    if (mLoomInfo.state != LoomState::running) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'pause' state. Not in 'running' state.");
         return false;
     }
     ESP_LOGD(kTag, "Switching to 'paused' state.");
-    mState = State::paused;
+    mLoomInfo.state = LoomState::paused;
     return true;
 }
 
 bool Loom::onContinue() {
-    if (mState != State::paused) {
+    if (mLoomInfo.state != LoomState::paused) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'running' state. Not in 'paused' state.");
         return false;
     }
     ESP_LOGD(kTag, "Switching to 'running' state.");
-    mState = State::running;
+    mLoomInfo.state = LoomState::running;
     return true;
 }
 
 bool Loom::onStop() {
     // if in "idle" there is nothing to do
-    if (mState == State::idle) {
+    if (mLoomInfo.state == LoomState::idle) {
         return true;
     }
     // TODO raise all shatfs back to idle position
@@ -135,45 +133,45 @@ bool Loom::onStop() {
     resetLiftplan();
     // switch back to idle state
     ESP_LOGD(kTag, "Switching to 'idle' state.");
-    mState = State::idle;
+    mLoomInfo.state = LoomState::idle;
     return true;
 }
 
 std::string Loom::onGetLoomState() const {
-    switch (mState) {
-    case State::idle:
+    switch (mLoomInfo.state) {
+    case LoomState::idle:
         return "idle";
-    case State::paused:
+    case LoomState::paused:
         return "paused";
-    case State::running:
+    case LoomState::running:
         return "running";
     }
     return "";
 }
 
 std::optional<unsigned int> Loom::onGetActiveLiftplanIndex() const {
-    return mLiftplanIndex;
+    return mLoomInfo.liftplanIndex;
 }
 
 std::optional<std::string> Loom::onGetActiveLiftplanName() const {
-    return mLiftplanName;
+    return mLoomInfo.liftplanName;
 }
 
 void Loom::onButtonPressed(gpio_num_t gpio) {
     ESP_LOGD(kTag, "Pressed GPIO %d", gpio);
-    if (mState != State::running || !mLiftplanCursor.isValid()) {
+    if (mLoomInfo.state != LoomState::running || !mLiftplanCursor.isValid()) {
         return;
     }
     if (gpio == NEXT_BUTTON) {
         mLiftplanCursor = mLiftplanCursor.next();
-        ++(*mLiftplanIndex);
-        (*mLiftplanIndex) %= mLiftplan.length();
+        ++(*mLoomInfo.liftplanIndex);
+        (*mLoomInfo.liftplanIndex) %= mLiftplan.length();
     } else if (gpio == PREV_BUTTON) {
         mLiftplanCursor = mLiftplanCursor.prev();
-        if (mLiftplanIndex > 0) {
-            --(*mLiftplanIndex);
+        if (mLoomInfo.liftplanIndex > 0) {
+            --(*mLoomInfo.liftplanIndex);
         } else {
-            mLiftplanIndex = mLiftplan.length() - 1;
+            mLoomInfo.liftplanIndex = mLiftplan.length() - 1;
         }
     } else {
         return;
@@ -183,8 +181,8 @@ void Loom::onButtonPressed(gpio_num_t gpio) {
 }
 
 void Loom::resetLiftplan() {
-    mLiftplanName.reset();
+    mLoomInfo.liftplanName.reset();
     mLiftplan.empty();
     mLiftplanCursor.reset();
-    mLiftplanIndex = std::nullopt;
+    mLoomInfo.liftplanIndex = std::nullopt;
 }

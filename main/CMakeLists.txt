@@ -2,6 +2,7 @@ idf_component_register(
     SRCS
         "config_store.cpp"
         "loom.cpp"
+        "loom_info.cpp"
         "main.cpp"
         "web_server.cpp"
         "wifi_info.cpp"

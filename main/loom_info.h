@@ -1,0 +1,68 @@
+#ifndef loom_info_h
+#define loom_info_h
+
+#include <inttypes.h>
+#include <optional>
+#include <string>
+
+#include "cJSON.h"
+
+namespace hla {
+/**
+ * @brief Enumeration representing loom states
+ */
+enum class LoomState { idle, running, paused };
+
+constexpr const char* loomStateToString(LoomState ls) {
+    switch (ls) {
+    case LoomState::idle:
+        return "idle";
+    case LoomState::running:
+        return "running";
+    case LoomState::paused:
+        return "paused";
+    default:
+        return "unknown";
+    }
+}
+
+/**
+ * @brief Represents a Wifi info class
+ *
+ */
+struct LoomInfo {
+    LoomInfo();
+
+    /**
+     * @brief Construct a new Loom Info object
+     *
+     * @param state state
+     * @param liftplanName Name of the liftplan file
+     * @param liftplanIndex Index of the active row
+     */
+    LoomInfo(const LoomState& state, const std::string& liftplanName,
+             unsigned int liftplanIndex);
+
+    /**
+     * @brief Default destructor
+     */
+    ~LoomInfo() = default;
+
+    /**
+     * @brief Default copy constructor
+     * @param other LoomInfo object
+     */
+    LoomInfo(const LoomInfo& other) = default;
+
+    /**
+     * @brief Default copy assignment constructor
+     * @param other LoomInfo object
+     */
+    LoomInfo& operator=(const LoomInfo& other) = default;
+
+    LoomState state;
+    std::optional<std::string> liftplanName;
+    std::optional<unsigned int> liftplanIndex;
+};
+}   // namespace hla
+#endif   // loom_info_h

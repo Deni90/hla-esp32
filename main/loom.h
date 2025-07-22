@@ -6,14 +6,13 @@
 #include "button_handler.h"
 #include "circular_deque.h"
 #include "loom_iface.h"
+#include "loom_info.h"
 #include "wifi_info.h"
 
 namespace hla {
 
 class Loom : public ILoom, public ButtonHandler {
   public:
-    enum class State { idle, running, paused };
-
     Loom();
     ~Loom() = default;
 
@@ -38,11 +37,9 @@ class Loom : public ILoom, public ButtonHandler {
     void onButtonPressed(gpio_num_t gpio) override;
     void resetLiftplan();
 
-    State mState;
-    std::optional<std::string> mLiftplanName;
+    LoomInfo mLoomInfo;
     CircularDeque<uint8_t> mLiftplan;
     CircularDeque<uint8_t>::Cursor mLiftplanCursor;
-    std::optional<unsigned int> mLiftplanIndex;
 };
 }   // namespace hla
 #endif   // loom_h
