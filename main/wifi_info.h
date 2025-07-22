@@ -4,8 +4,6 @@
 #include <inttypes.h>
 #include <string>
 
-#include "cJSON.h"
-
 namespace hla {
 /**
  * @brief Represents a Wifi info class
