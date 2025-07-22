@@ -333,6 +333,7 @@ function handleLiftplanSelection() {
             return response.json();
         })
         .then(data => {
+            console.log("handleLiftplanSelection =  " + JSON.stringify(data));
             const liftplanSelect = document.getElementById('selectLiftplan');
             // clear select to prevent adding duplicates
             while (liftplanSelect.length > 0) {
@@ -349,7 +350,7 @@ function handleLiftplanSelection() {
                 var index = 0;
                 // fetch the first liftplan
                 document.getElementById("activeLiftplanContainer").style.display = "flex";
-                if (loomInfo && loomInfo.loom_state == "running") {
+                if (loomInfo && loomInfo.loom_state != "idle") {
                     for (var i = 0; i < liftplanSelect.options.length; i++) {
                         if (liftplanSelect.options[i].value === loomInfo.active_liftplan) {
                             liftplanSelect.selectedIndex = i;
@@ -402,9 +403,8 @@ function handleLoomState(state) {
         document.getElementById("continueButton").style.display = "block";
         document.getElementById("stopButton").style.display = "block";
         document.getElementById("selectLiftplan").disabled = true;
-        if (loomIntervalId != 0) {
-            clearInterval(loomIntervalId);
-            loomIntervalId = 0;
+        if (loomIntervalId == 0) {
+            loomIntervalId = setInterval(getLoomLiftplanIndex, 1000);
         }
     }
 }
@@ -487,6 +487,8 @@ function stopLoom() {
             console.log("Stop loom response: " + JSON.stringify(data));
             if (data.status == true) {
                 handleLoomState("idle");
+                // reset the liftplan table
+                updateLiftplanSelect();
             }
         });
 }
