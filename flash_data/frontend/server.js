@@ -107,7 +107,6 @@ class LiftPlan {
     }
 }
 
-var wifiInfo = null;
 var liftplanEditableTable = new LiftPlan("liftplanEditableTable");
 var loomIntervalId = 0;
 var loomInfo = null;
@@ -167,7 +166,7 @@ function getWifiInfo() {
         })
         .then(data => {
             console.log("Wifi info = " + data);
-            wifiInfo = new WifiInfo.Builder().fromJson(data);
+            let wifiInfo = new WifiInfo.Builder().fromJson(data);
             document.getElementById("hostname").value = wifiInfo.hostname;
             document.getElementById("ssid").value = wifiInfo.ssid;
             document.getElementById("password").value = wifiInfo.password;
@@ -206,9 +205,11 @@ function setWifiInfo() {
         return;
     }
     logLabel.innerHTML = "";
-    wifiInfo.hostname = document.getElementById("hostname").value;
-    wifiInfo.ssid = document.getElementById("ssid").value;
-    wifiInfo.password = btoa(document.getElementById("password").value);
+    var wifiInfo = new WifiInfo(
+        document.getElementById("hostname").value,
+        document.getElementById("ssid").value,
+        btoa(document.getElementById("password").value)
+    );
     const requestOptions = {
         method: 'POST',
         headers: {
