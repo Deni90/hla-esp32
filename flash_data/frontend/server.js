@@ -134,15 +134,16 @@ function enableTab(id, tabName) {
     document.getElementById(id + "Button" + tabName).disabled = false;
 }
 
+function setEqualTabButtonWidth(id) {
+    var tabcontent = document.getElementById(id).children;
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.width = 100.0 / tabcontent.length + "%";
+    }
+}
+
 window.addEventListener('load', function () {
-    var tabcontent = document.getElementById("mainTab").children;
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.width = 100.0 / tabcontent.length + "%";
-    }
-    var tabcontent = document.getElementById("liftplanTab").children;
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.width = 100.0 / tabcontent.length + "%";
-    }
+    setEqualTabButtonWidth("mainTab");
+    setEqualTabButtonWidth("liftplanTab");
     openMainTab("mainTab", "Dashboard");
 });
 
