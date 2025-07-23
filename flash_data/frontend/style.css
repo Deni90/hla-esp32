@@ -72,6 +72,12 @@ body {
     color: #ffffff;
 }
 
+.main-tab button:disabled {
+    background-color: #f9f9f9;
+    color: #dddddd;
+    cursor: default;
+}
+
 .main-tabcontent {
     display: none;
     padding: 1.5em;

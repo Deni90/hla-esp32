@@ -113,7 +113,7 @@ var loomIntervalId = 0;
 var loomInfo = null;
 
 function openTab(id, tabName) {
-    var i, tabcontent, tablinks;
+    var i, tabcontent;
     tabcontent = document.getElementById(id).children;
     for (i = 0; i < tabcontent.length; i++) {
         var tab = tabcontent[i].id.toString().replace("Button", "");
@@ -124,6 +124,14 @@ function openTab(id, tabName) {
     }
     document.getElementById(id + tabName).style.display = "block";
     document.getElementById(id + "Button" + tabName).className += " active";
+}
+
+function disableTab(id, tabName) {
+    document.getElementById(id + "Button" + tabName).disabled = true;
+}
+
+function enableTab(id, tabName) {
+    document.getElementById(id + "Button" + tabName).disabled = false;
 }
 
 window.addEventListener('load', function () {
@@ -387,6 +395,8 @@ function handleLoomState(state) {
             clearInterval(loomIntervalId);
             loomIntervalId = 0;
         }
+        enableTab("mainTab", "Liftplan");
+        enableTab("mainTab", "Settings");
     } else if (state == "running") {
         document.getElementById("startButton").style.display = "none";
         document.getElementById("pauseButton").style.display = "block";
@@ -396,7 +406,8 @@ function handleLoomState(state) {
         if (loomIntervalId == 0) {
             loomIntervalId = setInterval(getLoomLiftplanIndex, 1000);
         }
-
+        disableTab("mainTab", "Liftplan");
+        disableTab("mainTab", "Settings");
     } else if (state == "paused") {
         document.getElementById("startButton").style.display = "none";
         document.getElementById("pauseButton").style.display = "none";
@@ -406,6 +417,8 @@ function handleLoomState(state) {
         if (loomIntervalId == 0) {
             loomIntervalId = setInterval(getLoomLiftplanIndex, 1000);
         }
+        disableTab("mainTab", "Liftplan");
+        disableTab("mainTab", "Settings");
     }
 }
 
