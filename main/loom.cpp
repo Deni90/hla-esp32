@@ -13,13 +13,12 @@ using hla::ConfigStore;
 using hla::Loom;
 using hla::WifiInfo;
 
-#define NEXT_BUTTON GPIO_NUM_22
-#define PREV_BUTTON GPIO_NUM_23
-
+static constexpr gpio_num_t kNextButton = GPIO_NUM_17;
+static constexpr gpio_num_t kPrevButton = GPIO_NUM_16;
 static const char* kTag = "loom";
 
 Loom::Loom()
-    : ButtonHandler({NEXT_BUTTON, PREV_BUTTON}), mLiftplanCursor(nullptr) {}
+    : ButtonHandler({kNextButton, kPrevButton}), mLiftplanCursor(nullptr) {}
 
 void Loom::initialize(const LoomInfo& loomInfo) {
     mLoomInfo = loomInfo;
@@ -134,11 +133,11 @@ void Loom::onButtonPressed(gpio_num_t gpio) {
     if (mLoomInfo.state != LoomState::running || !mLiftplanCursor.isValid()) {
         return;
     }
-    if (gpio == NEXT_BUTTON) {
+    if (gpio == kNextButton) {
         mLiftplanCursor = mLiftplanCursor.next();
         ++(*mLoomInfo.liftplanIndex);
         (*mLoomInfo.liftplanIndex) %= mLiftplan.length();
-    } else if (gpio == PREV_BUTTON) {
+    } else if (gpio == kPrevButton) {
         mLiftplanCursor = mLiftplanCursor.prev();
         if (mLoomInfo.liftplanIndex > 0) {
             --(*mLoomInfo.liftplanIndex);

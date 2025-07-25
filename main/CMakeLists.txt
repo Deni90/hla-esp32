@@ -17,6 +17,7 @@ idf_component_register(
         json
         mbedtls
         nvs_flash
+        ssd1306
     INCLUDE_DIRS
         "."
 )
