@@ -2,6 +2,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "mdns.h"
 
 #include "cJSON.h"
 
@@ -30,11 +31,15 @@ void Loom::initialize() {
                      mLoomInfo.liftplanIndex.value());
     }
 
+    WifiInfo wi = ConfigStore::loadWifiInfo().value_or(WifiInfo());
+
+    ESP_LOGI(kTag, "Initialize MDNS service...");
+    startMdnsService(wi);
+    ESP_LOGI(kTag, "Initialize MDNS service... done");
+
     ESP_LOGI(kTag, "Initialize Web server...");
     mWebServer.initialize();
-    ESP_LOGI(kTag, "Initialize Web server.. done");
-
-
+    ESP_LOGI(kTag, "Initialize Web server... done");
 }
 
 std::optional<WifiInfo> Loom::onGetWifiInfo() const {
@@ -135,6 +140,14 @@ std::optional<unsigned int> Loom::onGetActiveLiftplanIndex() const {
 
 std::optional<std::string> Loom::onGetActiveLiftplanName() const {
     return mLoomInfo.liftplanName;
+}
+
+void Loom::startMdnsService(const WifiInfo& wifiInfo) {
+    ESP_ERROR_CHECK(mdns_init());
+    ESP_ERROR_CHECK(mdns_hostname_set(wifiInfo.getHostname().c_str()));
+    ESP_ERROR_CHECK(mdns_instance_name_set("HandloomController web server"));
+    ESP_LOGI(kTag, "mDNS started: http://%s.local",
+             wifiInfo.getHostname().c_str());
 }
 
 void Loom::onButtonPressed(gpio_num_t gpio) {

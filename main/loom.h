@@ -37,6 +37,7 @@ class Loom : public ILoom, public ButtonHandler {
     std::optional<std::string> onGetActiveLiftplanName() const override;
 
   private:
+    void startMdnsService(const WifiInfo& wifiInfo);
     void onButtonPressed(gpio_num_t gpio) override;
     void resetLiftplan();
     bool loadLiftplan(const std::string& liftplanFileName,

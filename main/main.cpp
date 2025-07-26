@@ -5,7 +5,6 @@
 #include "esp_wifi.h"     //esp_wifi_init functions and wifi operations
 #include "lwip/inet.h"
 #include "mbedtls/base64.h"
-#include "mdns.h"
 #include "nvs_flash.h"   //non volatile storage
 
 #include "config_store.h"
@@ -178,14 +177,6 @@ static void SetupWifi(const WifiInfo& wifiInfo) {
     }
 }
 
-static void StartMdnsService(const WifiInfo& wifiInfo) {
-    ESP_ERROR_CHECK(mdns_init());
-    ESP_ERROR_CHECK(mdns_hostname_set(wifiInfo.getHostname().c_str()));
-    ESP_ERROR_CHECK(mdns_instance_name_set("HandloomController web server"));
-    ESP_LOGI(kTag, "mDNS started: http://%s.local",
-             wifiInfo.getHostname().c_str());
-}
-
 static bool SetupLittlefs() {
     esp_vfs_littlefs_conf_t conf = {
         .base_path = "/littlefs",
@@ -223,7 +214,6 @@ extern "C" void app_main(void) {
     WifiInfo wi = ConfigStore::loadWifiInfo().value_or(WifiInfo());
     SetupWifi(wi);
     ESP_LOGI(kTag, "Initialize Wifi... done");
-    StartMdnsService(wi);
 
     ESP_LOGI(kTag, "Initialize Loom...");
     gLoom.initialize();
