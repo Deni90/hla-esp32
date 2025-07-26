@@ -17,7 +17,6 @@
 
 using hla::ConfigStore;
 using hla::Loom;
-using hla::LoomInfo;
 using hla::WifiInfo;
 
 static const char* kTag = "main";
@@ -227,7 +226,6 @@ extern "C" void app_main(void) {
     StartMdnsService(wi);
 
     ESP_LOGI(kTag, "Initialize Loom...");
-    auto maybeLoomInfo = ConfigStore::loadLoomInfo();
-    gLoom.initialize(maybeLoomInfo.value_or(LoomInfo()));
+    gLoom.initialize();
     ESP_LOGI(kTag, "Initialize Loom... done");
 }

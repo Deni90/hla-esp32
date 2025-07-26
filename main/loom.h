@@ -17,7 +17,7 @@ class Loom : public ILoom, public ButtonHandler {
     Loom();
     ~Loom() = default;
 
-    void initialize(const LoomInfo& loomInfo);
+    void initialize();
 
     std::optional<WifiInfo> onGetWifiInfo() const override;
     void onSetWifiInfo(const WifiInfo& wifiInfo) override;

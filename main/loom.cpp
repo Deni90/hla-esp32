@@ -21,8 +21,10 @@ Loom::Loom()
     : ButtonHandler({kNextButton, kPrevButton}), mWebServer(*this),
       mLiftplanCursor(nullptr) {}
 
-void Loom::initialize(const LoomInfo& loomInfo) {
-    mLoomInfo = loomInfo;
+void Loom::initialize() {
+    ESP_LOGI(kTag, "Initialize Loom...");
+    mLoomInfo = ConfigStore::loadLoomInfo().value_or(LoomInfo());
+    ESP_LOGI(kTag, "Initialize Loom... done");
     if (mLoomInfo.state != LoomState::idle) {
         loadLiftplan(mLoomInfo.liftplanName.value(),
                      mLoomInfo.liftplanIndex.value());
@@ -31,6 +33,8 @@ void Loom::initialize(const LoomInfo& loomInfo) {
     ESP_LOGI(kTag, "Initialize Web server...");
     mWebServer.initialize();
     ESP_LOGI(kTag, "Initialize Web server.. done");
+
+
 }
 
 std::optional<WifiInfo> Loom::onGetWifiInfo() const {
