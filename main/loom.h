@@ -39,6 +39,7 @@ class Loom : public ILoom, public ButtonHandler {
     std::optional<std::string> onGetActiveLiftplanName() const override;
 
   private:
+    bool setupLittlefs();
     void setupWifi(const WifiInfo& wifiInfo);
     bool initializeWifiInStationMode(const WifiInfo& wifiInfo);
     void initializeWifiInApMode(const WifiInfo& wifiInfo);
