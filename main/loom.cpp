@@ -1,8 +1,16 @@
+#include <cstring>
+
+#include "dns_server.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
+#include "esp_system.h"   //esp_init funtions esp_err_t
+#include "esp_wifi.h"     //esp_wifi_init functions and wifi operations
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "lwip/inet.h"
+#include "mbedtls/base64.h"
 #include "mdns.h"
+#include "nvs_flash.h"   //non volatile storage
 
 #include "cJSON.h"
 
@@ -14,9 +22,14 @@ using hla::ConfigStore;
 using hla::Loom;
 using hla::WifiInfo;
 
+#define WIFI_CONNECTED_BIT BIT0
+#define WIFI_FAIL_BIT      BIT1
+
+static const char* kTag = "loom";
+static const char* kApSsid = "HandloomController";
+static constexpr int kMaxConnectionRetry = 5;
 static constexpr gpio_num_t kNextButton = GPIO_NUM_17;
 static constexpr gpio_num_t kPrevButton = GPIO_NUM_16;
-static const char* kTag = "loom";
 
 Loom::Loom()
     : ButtonHandler({kNextButton, kPrevButton}), mWebServer(*this),
@@ -32,6 +45,10 @@ void Loom::initialize() {
     }
 
     WifiInfo wi = ConfigStore::loadWifiInfo().value_or(WifiInfo());
+
+    ESP_LOGI(kTag, "Initialize Wifi...");
+    setupWifi(wi);
+    ESP_LOGI(kTag, "Initialize Wifi... done");
 
     ESP_LOGI(kTag, "Initialize MDNS service...");
     startMdnsService(wi);
@@ -140,6 +157,156 @@ std::optional<unsigned int> Loom::onGetActiveLiftplanIndex() const {
 
 std::optional<std::string> Loom::onGetActiveLiftplanName() const {
     return mLoomInfo.liftplanName;
+}
+
+static EventGroupHandle_t gWifiEventGroup;
+
+extern "C" void wifiEventHandler(void* arg, esp_event_base_t eventBase,
+                                 int32_t eventId, void* eventData) {
+    static int retryCount = 0;
+    if (eventBase == WIFI_EVENT && eventId == WIFI_EVENT_STA_START) {
+        esp_wifi_connect();
+
+    } else if (eventBase == WIFI_EVENT &&
+               eventId == WIFI_EVENT_STA_DISCONNECTED) {
+        if (retryCount < kMaxConnectionRetry) {
+            esp_wifi_connect();
+            retryCount++;
+            ESP_LOGI(kTag, "Retrying connection to Wi-Fi...");
+        } else {
+            xEventGroupSetBits(gWifiEventGroup, WIFI_FAIL_BIT);
+        }
+
+    } else if (eventBase == IP_EVENT && eventId == IP_EVENT_STA_GOT_IP) {
+        ip_event_got_ip_t* event = static_cast<ip_event_got_ip_t*>(eventData);
+        ESP_LOGI(kTag, "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+        retryCount = 0;
+        xEventGroupSetBits(gWifiEventGroup, WIFI_CONNECTED_BIT);
+    }
+}
+
+void Loom::setupWifi(const WifiInfo& wifiInfo) {
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+        ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ESP_ERROR_CHECK(nvs_flash_init());
+    }
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    gWifiEventGroup = xEventGroupCreate();
+    if (wifiInfo.getSSID() == "" || !initializeWifiInStationMode(wifiInfo)) {
+        initializeWifiInApMode(wifiInfo);
+        ESP_LOGI(kTag, "Setup captive portal...");
+        setupCaptivePortal();
+        ESP_LOGI(kTag, "Setup captive portal... done");
+        ESP_LOGI(kTag, "Start DNS server...");
+        // Start the DNS server that will redirect all queries to the softAP IP
+        dns_server_config_t config = DNS_SERVER_CONFIG_SINGLE(
+            "*" /* all A queries */, "WIFI_AP_DEF" /* softAP netif ID */);
+        start_dns_server(&config);
+        ESP_LOGI(kTag, "Start DNS server... done");
+    }
+}
+
+bool Loom::initializeWifiInStationMode(const WifiInfo& wifiInfo) {
+    esp_netif_t* netif = esp_netif_create_default_wifi_sta();
+    ESP_ERROR_CHECK(
+        esp_netif_set_hostname(netif, wifiInfo.getHostname().c_str()));
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+        WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiEventHandler, nullptr, nullptr));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+        IP_EVENT, IP_EVENT_STA_GOT_IP, &wifiEventHandler, nullptr, nullptr));
+
+    wifi_config_t wifiConfig = {};
+    std::strncpy(reinterpret_cast<char*>(wifiConfig.sta.ssid),
+                 wifiInfo.getSSID().c_str(), sizeof(wifiConfig.sta.ssid));
+    unsigned char password[64];
+    size_t passwordLenght;
+    mbedtls_base64_decode(password, 64, &passwordLenght,
+                          (unsigned char*) wifiInfo.getPassword().c_str(),
+                          wifiInfo.getPassword().length());
+    password[passwordLenght] = '\0';
+    std::strncpy(reinterpret_cast<char*>(wifiConfig.sta.password),
+                 reinterpret_cast<char*>(password),
+                 sizeof(wifiConfig.sta.password));
+    wifiConfig.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+    wifiConfig.sta.pmf_cfg.capable = true;
+    wifiConfig.sta.pmf_cfg.required = false;
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifiConfig));
+    ESP_ERROR_CHECK(esp_wifi_start());
+
+    EventBits_t bits =
+        xEventGroupWaitBits(gWifiEventGroup, WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
+                            pdFALSE, pdFALSE, pdMS_TO_TICKS(10000));
+
+    if (bits & WIFI_CONNECTED_BIT) {
+        ESP_LOGI(kTag, "Connected to STA: %s", wifiInfo.getSSID().c_str());
+        return true;
+    }
+
+    ESP_LOGW(kTag, "Failed to connect to STA.");
+    return false;
+}
+
+void Loom::initializeWifiInApMode(const WifiInfo& wifiInfo) {
+    esp_netif_t* netif = esp_netif_create_default_wifi_ap();
+    ESP_ERROR_CHECK(
+        esp_netif_set_hostname(netif, wifiInfo.getHostname().c_str()));
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    wifi_config_t wifiConfig = {};
+    std::strncpy(reinterpret_cast<char*>(wifiConfig.ap.ssid), kApSsid,
+                 sizeof(wifiConfig.ap.ssid));
+    wifiConfig.ap.ssid_len = std::strlen(kApSsid);
+    wifiConfig.ap.channel = 1;
+    wifiConfig.ap.max_connection = 4;
+    wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifiConfig));
+    ESP_ERROR_CHECK(esp_wifi_start());
+
+    esp_netif_ip_info_t ipInfo;
+    esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"),
+                          &ipInfo);
+
+    ESP_LOGI(kTag, "Started AP mode with SSID: %s", wifiConfig.ap.ssid);
+}
+
+void Loom::setupCaptivePortal() {
+    // get the IP of the access point to redirect to
+    esp_netif_ip_info_t ipInfo;
+    esp_netif_get_ip_info(esp_netif_get_handle_from_ifkey("WIFI_AP_DEF"),
+                          &ipInfo);
+
+    char ipAddr[16];
+    inet_ntoa_r(ipInfo.ip.addr, ipAddr, 16);
+    ESP_LOGI(kTag, "Set up softAP with IP: %s", ipAddr);
+
+    // turn the IP into a URI
+    char* captiveportal_uri = (char*) malloc(32 * sizeof(char));
+    assert(captiveportal_uri && "Failed to allocate captiveportal_uri");
+    strcpy(captiveportal_uri, "http://");
+    strcat(captiveportal_uri, ipAddr);
+
+    // get a handle to configure DHCP with
+    esp_netif_t* netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
+
+    // set the DHCP option 114
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcps_stop(netif));
+    ESP_ERROR_CHECK(esp_netif_dhcps_option(
+        netif, ESP_NETIF_OP_SET, ESP_NETIF_CAPTIVEPORTAL_URI, captiveportal_uri,
+        strlen(captiveportal_uri)));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(esp_netif_dhcps_start(netif));
 }
 
 void Loom::startMdnsService(const WifiInfo& wifiInfo) {

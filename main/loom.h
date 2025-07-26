@@ -3,6 +3,8 @@
 
 #include <optional>
 
+#include "esp_event.h"   //for wifi event
+
 #include "button_handler.h"
 #include "circular_deque.h"
 #include "loom_iface.h"
@@ -37,6 +39,10 @@ class Loom : public ILoom, public ButtonHandler {
     std::optional<std::string> onGetActiveLiftplanName() const override;
 
   private:
+    void setupWifi(const WifiInfo& wifiInfo);
+    bool initializeWifiInStationMode(const WifiInfo& wifiInfo);
+    void initializeWifiInApMode(const WifiInfo& wifiInfo);
+    void setupCaptivePortal();
     void startMdnsService(const WifiInfo& wifiInfo);
     void onButtonPressed(gpio_num_t gpio) override;
     void resetLiftplan();
