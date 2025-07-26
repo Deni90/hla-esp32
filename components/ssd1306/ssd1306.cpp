@@ -61,9 +61,10 @@ void Ssd1306::i2cMasterInit(i2c_port_num_t i2cPort, gpio_num_t sdaPin,
         i2c_master_bus_add_device(mI2cBusHandle, &devCfg, &mI2cDevHandle));
 }
 
-Ssd1306::Ssd1306(i2c_port_num_t i2cPort, gpio_num_t sdaPin, gpio_num_t sclPin,
-                 Ssd1306::Type oledType)
-    : mType(oledType) {
+Ssd1306::Ssd1306(Ssd1306::Type oledType) : mType(oledType) {}
+
+void Ssd1306::initialize(i2c_port_num_t i2cPort, gpio_num_t sdaPin,
+                         gpio_num_t sclPin) {
     i2cMasterInit(i2cPort, sdaPin, sclPin);
     // Some of these commands are not strictly necessary as the reset
     // process defaults to some of these but they are shown here

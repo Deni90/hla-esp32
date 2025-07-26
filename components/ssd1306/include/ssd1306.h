@@ -18,13 +18,19 @@ class Ssd1306 {
     /**
      * @brief Constructor
      *
+     * @param[in] oledType Type of the oled display
+     */
+    Ssd1306(Type oledType);
+
+    /**
+     * @brief Initialize oled display
+     *
      * @param[in] i2cPort I2C port
      * @param[in] sdaPin SDA pin
      * @param[in] sclPin SCL pin
-     * @param[in] oledType Type of the oled display
      */
-    Ssd1306(i2c_port_num_t i2cPort, gpio_num_t sdaPin, gpio_num_t sclPin,
-            Type oledType);
+    void initialize(i2c_port_num_t i2cPort, gpio_num_t sdaPin,
+                    gpio_num_t sclPin);
 
     /**
      * @brief Send a buffer to display.
