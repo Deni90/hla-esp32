@@ -7,6 +7,7 @@
 #include "circular_deque.h"
 #include "loom_iface.h"
 #include "loom_info.h"
+#include "web_server.h"
 #include "wifi_info.h"
 
 namespace hla {
@@ -41,6 +42,7 @@ class Loom : public ILoom, public ButtonHandler {
     bool loadLiftplan(const std::string& liftplanFileName,
                       unsigned int startPosition);
 
+    WebServer mWebServer;
     LoomInfo mLoomInfo;
     CircularDeque<uint8_t> mLiftplan;
     CircularDeque<uint8_t>::Cursor mLiftplanCursor;

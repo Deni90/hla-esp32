@@ -12,13 +12,12 @@
 #include "dns_server.h"
 #include "loom.h"
 #include "loom_info.h"
-#include "web_server.h"
+
 #include "wifi_info.h"
 
 using hla::ConfigStore;
 using hla::Loom;
 using hla::LoomInfo;
-using hla::WebServer;
 using hla::WifiInfo;
 
 static const char* kTag = "main";
@@ -27,7 +26,6 @@ static const int kMaxConnectionRetry = 5;
 
 static EventGroupHandle_t gWifiEventGroup;
 static Loom gLoom;
-static WebServer gWebServer(gLoom);
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
@@ -227,10 +225,6 @@ extern "C" void app_main(void) {
     SetupWifi(wi);
     ESP_LOGI(kTag, "Initialize Wifi... done");
     StartMdnsService(wi);
-
-    ESP_LOGI(kTag, "Initialize Web server...");
-    gWebServer.initialize();
-    ESP_LOGI(kTag, "Initialize Web server.. done");
 
     ESP_LOGI(kTag, "Initialize Loom...");
     auto maybeLoomInfo = ConfigStore::loadLoomInfo();

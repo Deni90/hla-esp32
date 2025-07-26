@@ -18,7 +18,8 @@ static constexpr gpio_num_t kPrevButton = GPIO_NUM_16;
 static const char* kTag = "loom";
 
 Loom::Loom()
-    : ButtonHandler({kNextButton, kPrevButton}), mLiftplanCursor(nullptr) {}
+    : ButtonHandler({kNextButton, kPrevButton}), mWebServer(*this),
+      mLiftplanCursor(nullptr) {}
 
 void Loom::initialize(const LoomInfo& loomInfo) {
     mLoomInfo = loomInfo;
@@ -26,6 +27,10 @@ void Loom::initialize(const LoomInfo& loomInfo) {
         loadLiftplan(mLoomInfo.liftplanName.value(),
                      mLoomInfo.liftplanIndex.value());
     }
+
+    ESP_LOGI(kTag, "Initialize Web server...");
+    mWebServer.initialize();
+    ESP_LOGI(kTag, "Initialize Web server.. done");
 }
 
 std::optional<WifiInfo> Loom::onGetWifiInfo() const {
