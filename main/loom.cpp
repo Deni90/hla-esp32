@@ -17,10 +17,12 @@
 
 #include "config_store.h"
 #include "loom.h"
+#include "splash_screen.h"
 #include "wifi_info.h"
 
 using hla::ConfigStore;
 using hla::Loom;
+using hla::SplashScreen;
 using hla::WifiInfo;
 
 #define WIFI_CONNECTED_BIT BIT0
@@ -29,12 +31,17 @@ using hla::WifiInfo;
 static const char* kTag = "loom";
 static const char* kApSsid = "HandloomController";
 static constexpr int kMaxConnectionRetry = 5;
+static constexpr int kI2cNum = I2C_NUM_0;
+static constexpr gpio_num_t kSdaPin = GPIO_NUM_21;
+static constexpr gpio_num_t kSclPin = GPIO_NUM_22;
 static constexpr gpio_num_t kNextButton = GPIO_NUM_17;
 static constexpr gpio_num_t kPrevButton = GPIO_NUM_16;
 
 Loom::Loom()
-    : ButtonHandler({kNextButton, kPrevButton}), mWebServer(*this),
-      mLiftplanCursor(nullptr) {}
+    : ButtonHandler({kNextButton, kPrevButton}),
+      mOled(Ssd1306::Type::ssd1306_128x64), mWebServer(*this),
+      mLiftplanCursor(nullptr),
+      mMainScreen(mOled.getWidth(), mOled.getHeight()) {}
 
 void Loom::initialize() {
     ESP_LOGI(kTag, "Initialize LittleFS...");
@@ -43,6 +50,11 @@ void Loom::initialize() {
     } else {
         ESP_LOGE(kTag, "Initialize LittleFS... failed");
     }
+
+    ESP_LOGI(kTag, "Initialize OLED...");
+    mOled.initialize(kI2cNum, kSdaPin, kSclPin);
+    mOled.display(SplashScreen(mOled.getWidth(), mOled.getHeight()).build());
+    ESP_LOGI(kTag, "Initialize OLED... done");
 
     ESP_LOGI(kTag, "Initialize Loom...");
     mLoomInfo = ConfigStore::loadLoomInfo().value_or(LoomInfo());
@@ -65,6 +77,10 @@ void Loom::initialize() {
     ESP_LOGI(kTag, "Initialize Web server...");
     mWebServer.initialize();
     ESP_LOGI(kTag, "Initialize Web server... done");
+
+    mOled.display(mMainScreen.setUrl(wi.getHostname() + ".local")
+                      .setLoomInfo(mLoomInfo)
+                      .build());
 }
 
 std::optional<WifiInfo> Loom::onGetWifiInfo() const {
@@ -105,6 +121,12 @@ bool Loom::onStart(const std::string& liftplanFileName,
 
     ESP_LOGI(kTag, "Switching to 'running' state.");
     mLoomInfo.state = LoomState::running;
+
+    mOled.display(mMainScreen.setLoomInfo(mLoomInfo)
+                      .setLoomPosition(mLiftplanCursor.prev().value(),
+                                       mLiftplanCursor.value(),
+                                       mLiftplanCursor.next().value())
+                      .build());
     return true;
 }
 
@@ -117,6 +139,7 @@ bool Loom::onPause() {
     ESP_LOGI(kTag, "Switching to 'paused' state.");
     mLoomInfo.state = LoomState::paused;
     ConfigStore::saveLoomInfo(mLoomInfo);
+    mOled.display(mMainScreen.setLoomInfo(mLoomInfo).build());
     return true;
 }
 
@@ -129,6 +152,7 @@ bool Loom::onContinue() {
     ESP_LOGI(kTag, "Switching to 'running' state.");
     mLoomInfo.state = LoomState::running;
     ConfigStore::deleteLoomInfo();
+    mOled.display(mMainScreen.setLoomInfo(mLoomInfo).build());
     return true;
 }
 
@@ -144,6 +168,7 @@ bool Loom::onStop() {
     ESP_LOGI(kTag, "Switching to 'idle' state.");
     mLoomInfo.state = LoomState::idle;
     ConfigStore::deleteLoomInfo();
+    mOled.display(mMainScreen.setLoomInfo(mLoomInfo).build());
     return true;
 }
 
@@ -227,6 +252,7 @@ void Loom::setupWifi(const WifiInfo& wifiInfo) {
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     gWifiEventGroup = xEventGroupCreate();
+    mMainScreen.setWifiSsid(wifiInfo.getSSID());
     if (wifiInfo.getSSID() == "" || !initializeWifiInStationMode(wifiInfo)) {
         initializeWifiInApMode(wifiInfo);
         ESP_LOGI(kTag, "Setup captive portal...");
@@ -238,6 +264,7 @@ void Loom::setupWifi(const WifiInfo& wifiInfo) {
             "*" /* all A queries */, "WIFI_AP_DEF" /* softAP netif ID */);
         start_dns_server(&config);
         ESP_LOGI(kTag, "Start DNS server... done");
+        mMainScreen.setWifiSsid(kApSsid);
     }
 }
 
@@ -369,6 +396,11 @@ void Loom::onButtonPressed(gpio_num_t gpio) {
         return;
     }
     // TODO implement me
+    mOled.display(mMainScreen.setLoomInfo(mLoomInfo)
+                      .setLoomPosition(mLiftplanCursor.prev().value(),
+                                       mLiftplanCursor.value(),
+                                       mLiftplanCursor.next().value())
+                      .build());
     ESP_LOGI(kTag, "Move shatfs to 0x%02x", mLiftplanCursor.value());
 }
 
@@ -421,5 +453,8 @@ bool Loom::loadLiftplan(const std::string& liftplanFileName,
         mLiftplanCursor = mLiftplanCursor.next();
     }
     mLoomInfo.liftplanIndex = startPosition % mLiftplan.length();
+    mMainScreen.setLoomPosition(mLiftplanCursor.prev().value(),
+                                mLiftplanCursor.value(),
+                                mLiftplanCursor.next().value());
     return true;
 }

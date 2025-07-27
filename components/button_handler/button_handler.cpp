@@ -24,7 +24,7 @@ ButtonHandler::ButtonHandler(const std::vector<gpio_num_t>& buttonPins)
         mButtons.push_back(btn);
     }
 
-    xTaskCreate(taskLoop, "button_handler_task", 2048, this, 10, nullptr);
+    xTaskCreate(taskLoop, "button_handler_task", 4096, this, 10, nullptr);
 }
 
 void ButtonHandler::onButtonPressed(gpio_num_t gpio) {

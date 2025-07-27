@@ -4,11 +4,13 @@
 #include <optional>
 
 #include "esp_event.h"   //for wifi event
+#include "ssd1306.h"
 
 #include "button_handler.h"
 #include "circular_deque.h"
 #include "loom_iface.h"
 #include "loom_info.h"
+#include "main_screen.h"
 #include "web_server.h"
 #include "wifi_info.h"
 
@@ -50,10 +52,12 @@ class Loom : public ILoom, public ButtonHandler {
     bool loadLiftplan(const std::string& liftplanFileName,
                       unsigned int startPosition);
 
+    Ssd1306 mOled;
     WebServer mWebServer;
     LoomInfo mLoomInfo;
     CircularDeque<uint8_t> mLiftplan;
     CircularDeque<uint8_t>::Cursor mLiftplanCursor;
+    MainScreen mMainScreen;
 };
 }   // namespace hla
 #endif   // loom_h

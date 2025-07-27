@@ -4,6 +4,9 @@ idf_component_register(
         "loom.cpp"
         "loom_info.cpp"
         "main.cpp"
+        "main_screen.cpp"
+        "screen.cpp"
+        "splash_screen.cpp"
         "web_server.cpp"
         "wifi_info.cpp"
     PRIV_REQUIRES
