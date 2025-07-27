@@ -38,10 +38,11 @@ struct LoomInfo {
      *
      * @param state state
      * @param liftplanName Name of the liftplan file
+     * @param liftplanLength Length of the liftplan, number of steps
      * @param liftplanIndex Index of the active row
      */
     LoomInfo(const LoomState& state, const std::string& liftplanName,
-             unsigned int liftplanIndex);
+             unsigned int liftplanLength, unsigned int liftplanIndex);
 
     /**
      * @brief Default destructor
@@ -62,6 +63,7 @@ struct LoomInfo {
 
     LoomState state;
     std::optional<std::string> liftplanName;
+    std::optional<unsigned int> liftplanLength;
     std::optional<unsigned int> liftplanIndex;
 };
 }   // namespace hla

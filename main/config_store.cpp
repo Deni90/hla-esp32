@@ -132,6 +132,10 @@ std::optional<LoomInfo> ConfigStore::loadLoomInfo() {
     if (liftplanName) {
         li.liftplanName = liftplanName->valuestring;
     }
+    cJSON* liftplanLength = cJSON_GetObjectItemCaseSensitive(json, "length");
+    if (liftplanLength) {
+        li.liftplanLength = liftplanLength->valueint;
+    }
     cJSON* liftplanIndex = cJSON_GetObjectItemCaseSensitive(json, "index");
     if (liftplanIndex) {
         li.liftplanIndex = liftplanIndex->valueint;
@@ -153,6 +157,11 @@ bool ConfigStore::saveLoomInfo(const LoomInfo loomInfo) {
         cJSON_AddItemToObject(
             json, "liftplan",
             cJSON_CreateString(loomInfo.liftplanName.value().c_str()));
+    }
+    if (loomInfo.liftplanLength.has_value()) {
+        cJSON_AddItemToObject(
+            json, "length",
+            cJSON_CreateNumber(loomInfo.liftplanLength.value()));
     }
     if (loomInfo.liftplanIndex.has_value()) {
         cJSON_AddItemToObject(

@@ -408,6 +408,7 @@ void Loom::resetLiftplan() {
     mLoomInfo.liftplanName.reset();
     mLiftplan.empty();
     mLiftplanCursor.reset();
+    mLoomInfo.liftplanLength = std::nullopt;
     mLoomInfo.liftplanIndex = std::nullopt;
 }
 
@@ -447,6 +448,7 @@ bool Loom::loadLiftplan(const std::string& liftplanFileName,
     }
     cJSON_Delete(root);
     mLoomInfo.liftplanName = liftplanFileName;
+    mLoomInfo.liftplanLength = mLiftplan.length();
     // setup the cursor
     mLiftplanCursor = mLiftplan.frontCursor();
     for (unsigned int i = 0; i < startPosition; ++i) {

@@ -31,19 +31,27 @@ uint8_t* MainScreen::build() {
             printString(0, y, "liftplan: " + liftplanName);
             y += 8;
         }
+        uint16_t x = 0;
         if (mLoomInfo.liftplanIndex.has_value()) {
-            printString(
+            x = printString(
                 0, y,
                 "step: " + std::to_string(mLoomInfo.liftplanIndex.value() + 1));
+        }
+        if (mLoomInfo.liftplanLength.has_value()) {
+            printString(x, y,
+                        "/" + std::to_string(mLoomInfo.liftplanLength.value()));
+        }
+        if (mLoomInfo.liftplanIndex.has_value()) {
             y += 8;
         }
-        const uint8_t x = 21;
-        printLoomPosition(x, y + 1, mPrevLoomPosition);
+
+        const uint8_t liftplanX = 21;
+        printLoomPosition(liftplanX, y + 1, mPrevLoomPosition);
         y += 8;
         printString(0, y, "  -->");
-        printLoomPosition(x, y + 1, mCurLoomPosition);
+        printLoomPosition(liftplanX, y + 1, mCurLoomPosition);
         y += 8;
-        printLoomPosition(x, y + 1, mNextLoomPosition);
+        printLoomPosition(liftplanX, y + 1, mNextLoomPosition);
     }
 
     return mFrameBuffer;
