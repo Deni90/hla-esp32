@@ -45,10 +45,10 @@ uint8_t* MainScreen::build() {
             y += 8;
         }
 
-        const uint8_t liftplanX = 21;
+        const uint8_t liftplanX = 32;
         printLoomPosition(liftplanX, y + 1, mPrevLoomPosition);
         y += 8;
-        printString(0, y, "  -->");
+        printString(18, y, "-->");
         printLoomPosition(liftplanX, y + 1, mCurLoomPosition);
         y += 8;
         printLoomPosition(liftplanX, y + 1, mNextLoomPosition);
