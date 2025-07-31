@@ -38,8 +38,7 @@ static constexpr gpio_num_t kNextButton = GPIO_NUM_17;
 static constexpr gpio_num_t kPrevButton = GPIO_NUM_16;
 
 Loom::Loom()
-    : ButtonHandler({kNextButton, kPrevButton}),
-      mOled(Ssd1306::Type::ssd1306_128x64), mWebServer(*this),
+    : ButtonHandler({kNextButton, kPrevButton}), mWebServer(*this),
       mLiftplanCursor(nullptr),
       mMainScreen(mOled.getWidth(), mOled.getHeight()) {}
 

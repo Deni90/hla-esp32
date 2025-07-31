@@ -4,7 +4,7 @@
 #include <optional>
 
 #include "esp_event.h"   //for wifi event
-#include "ssd1306.h"
+#include "sh1106.h"
 
 #include "button_handler.h"
 #include "circular_deque.h"
@@ -52,7 +52,7 @@ class Loom : public ILoom, public ButtonHandler {
     bool loadLiftplan(const std::string& liftplanFileName,
                       unsigned int startPosition);
 
-    Ssd1306 mOled;
+    Sh1106 mOled;
     WebServer mWebServer;
     LoomInfo mLoomInfo;
     CircularDeque<uint8_t> mLiftplan;

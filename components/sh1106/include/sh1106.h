@@ -1,26 +1,19 @@
-#ifndef ssd1306_h
-#define ssd1306_h
+#ifndef sh1106_h
+#define sh1106_h
 
 #include <cstdint>
 
 #include "driver/i2c_master.h"
 
 /**
- * @brief Class representing SSD1306 type oled display
+ * @brief Class representing SH1106 type 128x64 oled display
  */
-class Ssd1306 {
+class Sh1106 {
   public:
     /**
-     * @brief Enum representing various oled display sizes
-     */
-    enum class Type { ssd1306_128x32, ssd1306_128x64 };
-
-    /**
      * @brief Constructor
-     *
-     * @param[in] oledType Type of the oled display
      */
-    Ssd1306(Type oledType);
+    Sh1106() = default;
 
     /**
      * @brief Initialize oled display
@@ -80,9 +73,8 @@ class Ssd1306 {
      */
     void i2cMasterInit(i2c_port_num_t i2cPort, gpio_num_t sda, gpio_num_t scl);
 
-    Type mType;
     i2c_master_bus_handle_t mI2cBusHandle;
     i2c_master_dev_handle_t mI2cDevHandle;
 };
 
-#endif   // ssd1306_h
+#endif   // sh1106_h
