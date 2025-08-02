@@ -36,11 +36,15 @@ static constexpr gpio_num_t kSdaPin = GPIO_NUM_21;
 static constexpr gpio_num_t kSclPin = GPIO_NUM_22;
 static constexpr gpio_num_t kNextButton = GPIO_NUM_17;
 static constexpr gpio_num_t kPrevButton = GPIO_NUM_16;
+static constexpr uart_port_t kUartPort = UART_NUM_1;
+static constexpr gpio_num_t kTxPin = GPIO_NUM_14;
+static constexpr gpio_num_t kRxPin = GPIO_NUM_15;
 
 Loom::Loom()
     : ButtonHandler({kNextButton, kPrevButton}), mWebServer(*this),
       mLiftplanCursor(nullptr),
-      mMainScreen(mOled.getWidth(), mOled.getHeight()) {}
+      mMainScreen(mOled.getWidth(), mOled.getHeight()),
+      mUart(kUartPort, kTxPin, kRxPin) {}
 
 void Loom::initialize() {
     ESP_LOGI(kTag, "Initialize LittleFS...");
@@ -54,6 +58,10 @@ void Loom::initialize() {
     mOled.initialize(kI2cNum, kSdaPin, kSclPin);
     mOled.display(SplashScreen(mOled.getWidth(), mOled.getHeight()).build());
     ESP_LOGI(kTag, "Initialize OLED... done");
+
+    ESP_LOGI(kTag, "Initialize UART...");
+    mUart.initialize();
+    ESP_LOGI(kTag, "Initialize UART... done");
 
     ESP_LOGI(kTag, "Initialize Loom...");
     mLoomInfo = ConfigStore::loadLoomInfo().value_or(LoomInfo());

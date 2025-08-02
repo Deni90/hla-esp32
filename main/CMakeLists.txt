@@ -7,6 +7,7 @@ idf_component_register(
         main_screen.cpp
         screen.cpp
         splash_screen.cpp
+        uart.cpp
         web_server.cpp
         wifi_info.cpp
     PRIV_REQUIRES
@@ -21,6 +22,7 @@ idf_component_register(
         mbedtls
         nvs_flash
         sh1106
+        esp_driver_uart
     INCLUDE_DIRS
         include
 )

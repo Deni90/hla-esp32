@@ -13,6 +13,7 @@
 #include "main_screen.h"
 #include "web_server.h"
 #include "wifi_info.h"
+#include "uart.h"
 
 namespace hla {
 
@@ -58,6 +59,7 @@ class Loom : public ILoom, public ButtonHandler {
     CircularDeque<uint8_t> mLiftplan;
     CircularDeque<uint8_t>::Cursor mLiftplanCursor;
     MainScreen mMainScreen;
+    Uart mUart;
 };
 }   // namespace hla
 #endif   // loom_h
