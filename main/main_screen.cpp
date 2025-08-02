@@ -10,7 +10,6 @@ MainScreen::MainScreen(uint16_t width, uint16_t height)
 
 uint8_t* MainScreen::build() {
     clear();
-    std::string foo = "foo";
     int16_t y = 0;
     printString(0, y, "wifi: " + mWifiSsid);
     y += 8;
