@@ -4,7 +4,7 @@ using hla::LoomInfo;
 using hla::LoomState;
 
 LoomInfo::LoomInfo()
-    : state(LoomState::idle), liftplanName(std::nullopt),
+    : state(LoomState::init), liftplanName(std::nullopt),
       liftplanLength(std::nullopt), liftplanIndex(std::nullopt) {}
 
 LoomInfo::LoomInfo(const LoomState& state, const std::string& liftplanName,

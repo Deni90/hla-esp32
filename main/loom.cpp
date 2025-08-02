@@ -58,9 +58,11 @@ void Loom::initialize() {
     ESP_LOGI(kTag, "Initialize Loom...");
     mLoomInfo = ConfigStore::loadLoomInfo().value_or(LoomInfo());
     ESP_LOGI(kTag, "Initialize Loom... done");
-    if (mLoomInfo.state != LoomState::idle) {
+    if (mLoomInfo.state == LoomState::paused) {
         loadLiftplan(mLoomInfo.liftplanName.value(),
                      mLoomInfo.liftplanIndex.value());
+    } else {
+        mLoomInfo.state = LoomState::idle;
     }
 
     WifiInfo wi = ConfigStore::loadWifiInfo().value_or(WifiInfo());
@@ -172,15 +174,7 @@ bool Loom::onStop() {
 }
 
 std::string Loom::onGetLoomState() const {
-    switch (mLoomInfo.state) {
-    case LoomState::idle:
-        return "idle";
-    case LoomState::paused:
-        return "paused";
-    case LoomState::running:
-        return "running";
-    }
-    return "";
+    return loomStateToString(mLoomInfo.state);
 }
 
 std::optional<unsigned int> Loom::onGetActiveLiftplanIndex() const {
