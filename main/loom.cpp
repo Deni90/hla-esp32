@@ -37,14 +37,14 @@ static constexpr gpio_num_t kSclPin = GPIO_NUM_22;
 static constexpr gpio_num_t kNextButton = GPIO_NUM_17;
 static constexpr gpio_num_t kPrevButton = GPIO_NUM_16;
 static constexpr uart_port_t kUartPort = UART_NUM_1;
-static constexpr gpio_num_t kTxPin = GPIO_NUM_14;
-static constexpr gpio_num_t kRxPin = GPIO_NUM_15;
+static constexpr gpio_num_t kTxPin = GPIO_NUM_18;
+static constexpr gpio_num_t kRxPin = GPIO_NUM_19;
 
 Loom::Loom()
     : ButtonHandler({kNextButton, kPrevButton}), mWebServer(*this),
       mLiftplanCursor(nullptr),
       mMainScreen(mOled.getWidth(), mOled.getHeight()),
-      mUart(kUartPort, kTxPin, kRxPin) {}
+      mSliderController(kUartPort, kTxPin, kRxPin) {}
 
 void Loom::initialize() {
     ESP_LOGI(kTag, "Initialize LittleFS...");
@@ -60,7 +60,7 @@ void Loom::initialize() {
     ESP_LOGI(kTag, "Initialize OLED... done");
 
     ESP_LOGI(kTag, "Initialize UART...");
-    mUart.initialize();
+    mSliderController.initialize();
     ESP_LOGI(kTag, "Initialize UART... done");
 
     ESP_LOGI(kTag, "Initialize Loom...");
@@ -125,12 +125,12 @@ bool Loom::onStart(const std::string& liftplanFileName,
         return false;
     }
     loadLiftplan(liftplanFileName, startPosition);
-    // TODO move shafts to match the first element from the liftplan
-    ESP_LOGI(kTag, "Move shatfs to 0x%02x", mLiftplanCursor.value());
-
-    ESP_LOGI(kTag, "Switching to 'running' state.");
-    mLoomInfo.state = LoomState::running;
-
+    // move shafts to match the first element from the liftplan
+    ESP_LOGI(kTag, "Moving shatfs to 0x%02x", mLiftplanCursor.value());
+    if (mSliderController.sendCommand(mLiftplanCursor.value())) {
+        ESP_LOGI(kTag, "Switching to 'running' state.");
+        mLoomInfo.state = LoomState::running;
+    }
     mOled.display(mMainScreen.setLoomInfo(mLoomInfo)
                       .setLoomPosition(mLiftplanCursor.prev().value(),
                                        mLiftplanCursor.value(),
@@ -148,6 +148,13 @@ bool Loom::onPause() {
     ESP_LOGI(kTag, "Switching to 'paused' state.");
     mLoomInfo.state = LoomState::paused;
     ConfigStore::saveLoomInfo(mLoomInfo);
+    // lower all shafts
+    ESP_LOGI(kTag, "Lowering all shafts...");
+    while (!mSliderController.sendCommand(0)) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        ESP_LOGW(kTag, "Lowering all shafts... retry");
+    }
+    ESP_LOGI(kTag, "Lowering all shafts... done");
     mOled.display(mMainScreen.setLoomInfo(mLoomInfo).build());
     return true;
 }
@@ -159,6 +166,12 @@ bool Loom::onContinue() {
         return false;
     }
     ESP_LOGI(kTag, "Switching to 'running' state.");
+    // move shafts to match the first element from the liftplan
+    ESP_LOGI(kTag, "Moving shatfs to 0x%02x", mLiftplanCursor.value());
+    if (mSliderController.sendCommand(mLiftplanCursor.value())) {
+        ESP_LOGI(kTag, "Switching to 'running' state.");
+        mLoomInfo.state = LoomState::running;
+    }
     mLoomInfo.state = LoomState::running;
     ConfigStore::deleteLoomInfo();
     mOled.display(mMainScreen.setLoomInfo(mLoomInfo).build());
@@ -170,7 +183,14 @@ bool Loom::onStop() {
     if (mLoomInfo.state == LoomState::idle) {
         return true;
     }
-    // TODO raise all shatfs back to idle position
+     // lower all shafts
+    // lower all shafts
+    ESP_LOGI(kTag, "Lowering all shafts...");
+    while (!mSliderController.sendCommand(0)) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        ESP_LOGW(kTag, "Lowering all shafts... retry");
+    }
+    ESP_LOGI(kTag, "Lowering all shafts... done");
     // clear the liftplan buffer, ...
     resetLiftplan();
     // switch back to idle state
@@ -383,10 +403,16 @@ void Loom::onButtonPressed(gpio_num_t gpio) {
         return;
     }
     if (gpio == kNextButton) {
+        if (!mSliderController.sendCommand(mLiftplanCursor.next().value())) {
+            return;
+        }
         mLiftplanCursor = mLiftplanCursor.next();
         ++(*mLoomInfo.liftplanIndex);
         (*mLoomInfo.liftplanIndex) %= mLiftplan.length();
     } else if (gpio == kPrevButton) {
+        if (!mSliderController.sendCommand(mLiftplanCursor.prev().value())) {
+            return;
+        }
         mLiftplanCursor = mLiftplanCursor.prev();
         if (mLoomInfo.liftplanIndex > 0) {
             --(*mLoomInfo.liftplanIndex);
@@ -402,7 +428,7 @@ void Loom::onButtonPressed(gpio_num_t gpio) {
                                        mLiftplanCursor.value(),
                                        mLiftplanCursor.next().value())
                       .build());
-    ESP_LOGI(kTag, "Move shatfs to 0x%02x", mLiftplanCursor.value());
+    ESP_LOGI(kTag, "Shatfs moved to 0x%02x", mLiftplanCursor.value());
 }
 
 void Loom::resetLiftplan() {

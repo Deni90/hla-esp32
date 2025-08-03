@@ -1,4 +1,4 @@
-#include "uart.h"
+#include "slider_controller.h"
 
 #include <cstring>
 #include <utility>
@@ -6,14 +6,15 @@
 #include "esp_log.h"
 #include "freertos/task.h"
 
-using hla::Uart;
+using hla::SliderController;
 
 static const char* kTag = "uart";
 
-Uart::Uart(uart_port_t port, gpio_num_t txPin, gpio_num_t rxPin)
+SliderController::SliderController(uart_port_t port, gpio_num_t txPin,
+                                   gpio_num_t rxPin)
     : mPort(port), mTxPin(txPin), mRxPin(rxPin), mResponseQueue(nullptr) {}
 
-void Uart::initialize() {
+void SliderController::initialize() {
     uart_config_t config = {};
     config.baud_rate = 9600;
     config.data_bits = UART_DATA_8_BITS;
@@ -29,7 +30,30 @@ void Uart::initialize() {
     xTaskCreate(rxTask, "uart_rx_task", 2048, this, 10, nullptr);
 }
 
-void Uart::send(uint8_t cmd, uint8_t data) {
+bool SliderController::getState(State& state) {
+    state = State::Unknown;
+    send(UartMessages::StateRequest, 0);
+    uint8_t recvCmd = 0, recvData = 0;
+    recv(&recvCmd, &recvData);
+    if (recvCmd == UartMessages::StateRequest) {
+        state = static_cast<State>(recvData);
+        return true;
+    }
+    return false;
+}
+
+bool SliderController::sendCommand(uint8_t value) {
+    send(UartMessages::CommandRequest, value);
+    uint8_t recvCmd = 0, recvData = 0;
+    recv(&recvCmd, &recvData);
+    if (recvCmd == UartMessages::CommandResponse &&
+        recvData == StatusCode::Ok) {
+        return true;
+    }
+    return false;
+}
+
+void SliderController::send(uint8_t cmd, uint8_t data) {
     uint8_t buf[3] = {cmd, data, 0};
     buf[2] = crc8(buf, 2);
     uart_write_bytes(mPort, reinterpret_cast<const char*>(buf), 3);
@@ -37,7 +61,7 @@ void Uart::send(uint8_t cmd, uint8_t data) {
              buf[2]);
 }
 
-bool Uart::recv(uint8_t* cmd, uint8_t* data, TickType_t timeout) {
+bool SliderController::recv(uint8_t* cmd, uint8_t* data, TickType_t timeout) {
     std::pair<uint8_t, uint8_t> combinedData;
     bool result =
         xQueueReceive(mResponseQueue, &combinedData, timeout) == pdTRUE;
@@ -46,8 +70,8 @@ bool Uart::recv(uint8_t* cmd, uint8_t* data, TickType_t timeout) {
     return result;
 }
 
-void Uart::rxTask(void* param) {
-    Uart* self = static_cast<Uart*>(param);
+void SliderController::rxTask(void* param) {
+    SliderController* self = static_cast<SliderController*>(param);
     uint8_t buf[3];
 
     while (true) {
@@ -66,7 +90,7 @@ void Uart::rxTask(void* param) {
     }
 }
 
-uint8_t Uart::crc8(const uint8_t* data, size_t len) {
+uint8_t SliderController::crc8(const uint8_t* data, size_t len) {
     uint8_t crc = 0x00;   // Initial value
     for (size_t i = 0; i < len; ++i) {
         crc ^= data[i];

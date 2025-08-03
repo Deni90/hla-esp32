@@ -11,9 +11,9 @@
 #include "loom_iface.h"
 #include "loom_info.h"
 #include "main_screen.h"
+#include "slider_controller.h"
 #include "web_server.h"
 #include "wifi_info.h"
-#include "uart.h"
 
 namespace hla {
 
@@ -59,7 +59,7 @@ class Loom : public ILoom, public ButtonHandler {
     CircularDeque<uint8_t> mLiftplan;
     CircularDeque<uint8_t>::Cursor mLiftplanCursor;
     MainScreen mMainScreen;
-    Uart mUart;
+    SliderController mSliderController;
 };
 }   // namespace hla
 #endif   // loom_h

@@ -6,8 +6,8 @@ idf_component_register(
         main.cpp
         main_screen.cpp
         screen.cpp
+        slider_controller.cpp
         splash_screen.cpp
-        uart.cpp
         web_server.cpp
         wifi_info.cpp
     PRIV_REQUIRES
