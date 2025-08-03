@@ -35,19 +35,19 @@ class Screen {
     /**
      * @brief Enumeration describing text alignment
      */
-    enum class TextAlign { left, center, right };
+    enum class TextAlign { Left, Center, Right };
 
     /**
      * @brief Enumeration describing Font sizes
      */
-    enum class FontSize { normal, big };
+    enum class FontSize { Normal, Big };
 
     /**
      * @brief Struct containing string configuration
      */
     struct StringConfig {
-        TextAlign align = TextAlign::left;
-        FontSize size = FontSize::normal;
+        TextAlign align = TextAlign::Left;
+        FontSize size = FontSize::Normal;
         bool invert = false;
     };
 

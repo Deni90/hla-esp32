@@ -19,7 +19,7 @@ uint8_t* MainScreen::build() {
     transform(state.begin(), state.end(), state.begin(), ::toupper);
     printString(0, y, "state: " + state);
     y += 8;
-    if (mLoomInfo.state != LoomState::idle) {
+    if (mLoomInfo.state != LoomState::Idle) {
         if (mLoomInfo.liftplanName.has_value()) {
             const std::string subStringToRemove = ".json";
             std::string liftplanName = mLoomInfo.liftplanName.value();

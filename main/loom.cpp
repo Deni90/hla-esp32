@@ -66,11 +66,11 @@ void Loom::initialize() {
     ESP_LOGI(kTag, "Initialize Loom...");
     mLoomInfo = ConfigStore::loadLoomInfo().value_or(LoomInfo());
     ESP_LOGI(kTag, "Initialize Loom... done");
-    if (mLoomInfo.state == LoomState::paused) {
+    if (mLoomInfo.state == LoomState::Paused) {
         loadLiftplan(mLoomInfo.liftplanName.value(),
                      mLoomInfo.liftplanIndex.value());
     } else {
-        mLoomInfo.state = LoomState::idle;
+        mLoomInfo.state = LoomState::Idle;
     }
 
     WifiInfo wi = ConfigStore::loadWifiInfo().value_or(WifiInfo());
@@ -119,7 +119,7 @@ bool Loom::onDeleteLiftPlan(const std::string& fileName) {
 bool Loom::onStart(const std::string& liftplanFileName,
                    unsigned int startPosition) {
     // it is only possible to switch to running from idle state
-    if (mLoomInfo.state != LoomState::idle) {
+    if (mLoomInfo.state != LoomState::Idle) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'running' state. Not in 'idle' state.");
         return false;
@@ -129,7 +129,7 @@ bool Loom::onStart(const std::string& liftplanFileName,
     ESP_LOGI(kTag, "Moving shatfs to 0x%02x", mLiftplanCursor.value());
     if (mSliderController.sendCommand(mLiftplanCursor.value())) {
         ESP_LOGI(kTag, "Switching to 'running' state.");
-        mLoomInfo.state = LoomState::running;
+        mLoomInfo.state = LoomState::Running;
     }
     mOled.display(mMainScreen.setLoomInfo(mLoomInfo)
                       .setLoomPosition(mLiftplanCursor.prev().value(),
@@ -140,13 +140,13 @@ bool Loom::onStart(const std::string& liftplanFileName,
 }
 
 bool Loom::onPause() {
-    if (mLoomInfo.state != LoomState::running) {
+    if (mLoomInfo.state != LoomState::Running) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'pause' state. Not in 'running' state.");
         return false;
     }
     ESP_LOGI(kTag, "Switching to 'paused' state.");
-    mLoomInfo.state = LoomState::paused;
+    mLoomInfo.state = LoomState::Paused;
     ConfigStore::saveLoomInfo(mLoomInfo);
     // lower all shafts
     ESP_LOGI(kTag, "Lowering all shafts...");
@@ -160,7 +160,7 @@ bool Loom::onPause() {
 }
 
 bool Loom::onContinue() {
-    if (mLoomInfo.state != LoomState::paused) {
+    if (mLoomInfo.state != LoomState::Paused) {
         ESP_LOGW(kTag,
                  "Failed to switch to 'running' state. Not in 'paused' state.");
         return false;
@@ -170,9 +170,9 @@ bool Loom::onContinue() {
     ESP_LOGI(kTag, "Moving shatfs to 0x%02x", mLiftplanCursor.value());
     if (mSliderController.sendCommand(mLiftplanCursor.value())) {
         ESP_LOGI(kTag, "Switching to 'running' state.");
-        mLoomInfo.state = LoomState::running;
+        mLoomInfo.state = LoomState::Running;
     }
-    mLoomInfo.state = LoomState::running;
+    mLoomInfo.state = LoomState::Running;
     ConfigStore::deleteLoomInfo();
     mOled.display(mMainScreen.setLoomInfo(mLoomInfo).build());
     return true;
@@ -180,7 +180,7 @@ bool Loom::onContinue() {
 
 bool Loom::onStop() {
     // if in "idle" there is nothing to do
-    if (mLoomInfo.state == LoomState::idle) {
+    if (mLoomInfo.state == LoomState::Idle) {
         return true;
     }
      // lower all shafts
@@ -195,7 +195,7 @@ bool Loom::onStop() {
     resetLiftplan();
     // switch back to idle state
     ESP_LOGI(kTag, "Switching to 'idle' state.");
-    mLoomInfo.state = LoomState::idle;
+    mLoomInfo.state = LoomState::Idle;
     ConfigStore::deleteLoomInfo();
     mOled.display(mMainScreen.setLoomInfo(mLoomInfo).build());
     return true;
@@ -399,7 +399,7 @@ void Loom::startMdnsService(const WifiInfo& wifiInfo) {
 
 void Loom::onButtonPressed(gpio_num_t gpio) {
     ESP_LOGI(kTag, "Pressed GPIO %d", gpio);
-    if (mLoomInfo.state != LoomState::running || !mLiftplanCursor.isValid()) {
+    if (mLoomInfo.state != LoomState::Running || !mLiftplanCursor.isValid()) {
         return;
     }
     if (gpio == kNextButton) {

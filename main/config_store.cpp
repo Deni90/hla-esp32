@@ -122,11 +122,11 @@ std::optional<LoomInfo> ConfigStore::loadLoomInfo() {
     std::string loomState =
         cJSON_GetObjectItemCaseSensitive(json, "state")->valuestring;
     if (loomState == "idle") {
-        li.state = LoomState::idle;
+        li.state = LoomState::Idle;
     } else if (loomState == "running") {
-        li.state = LoomState::running;
+        li.state = LoomState::Running;
     } else if (loomState == "paused") {
-        li.state = LoomState::paused;
+        li.state = LoomState::Paused;
     }
     cJSON* liftplanName = cJSON_GetObjectItemCaseSensitive(json, "liftplan");
     if (liftplanName) {

@@ -228,7 +228,7 @@ uint16_t Screen::printString(int16_t x, int16_t y, const std::string& str) {
 uint16_t Screen::printString(int16_t x, int16_t y, const std::string& str,
                              const StringConfig& config) {
     auto text_width = 0;
-    if (config.align == TextAlign::center || config.align == TextAlign::right) {
+    if (config.align == TextAlign::Center || config.align == TextAlign::Right) {
         // dry run to calculate width used for alignment
         for (const auto& ch : str) {
             for (uint8_t i = 0; i < k_font_width; i++) {
@@ -238,18 +238,18 @@ uint16_t Screen::printString(int16_t x, int16_t y, const std::string& str,
             }
         }
         text_width += str.size() - 1;   // add letter spacing to text width
-        if (config.size == FontSize::big) {
+        if (config.size == FontSize::Big) {
             text_width *= 2;
         }
     }
     int32_t xx = x;
-    if (config.align == TextAlign::center) {
+    if (config.align == TextAlign::Center) {
         xx = x - text_width / 2;
-    } else if (config.align == TextAlign::right) {
+    } else if (config.align == TextAlign::Right) {
         xx = x - text_width;
     }
     for (const auto& ch : str) {
-        if (config.size == FontSize::big) {
+        if (config.size == FontSize::Big) {
             xx += printCharBig(xx, y, ch, config.invert);
         } else {
             xx += printChar(xx, y, ch, config.invert);

@@ -11,17 +11,17 @@ namespace hla {
 /**
  * @brief Enumeration representing loom states
  */
-enum class LoomState { init, idle, running, paused };
+enum class LoomState { Init, Idle, Running, Paused };
 
 constexpr const char* loomStateToString(LoomState ls) {
     switch (ls) {
-    case LoomState::init:
+    case LoomState::Init:
         return "init";
-    case LoomState::idle:
+    case LoomState::Idle:
         return "idle";
-    case LoomState::running:
+    case LoomState::Running:
         return "running";
-    case LoomState::paused:
+    case LoomState::Paused:
         return "paused";
     default:
         return "unknown";
