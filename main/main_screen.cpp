@@ -81,7 +81,7 @@ MainScreen& MainScreen::setLoomPosition(uint8_t prev, uint8_t cur,
 
 void MainScreen::printLoomPosition(uint16_t x, uint16_t y, uint8_t value) {
     for (uint8_t i = 0; i < 8; ++i) {
-        bool fill = value & (1 << (7 - i));
+        bool fill = value & (1 << i);
         drawRectangle(x, y, 6, 6, fill);
         x += 8;
     }

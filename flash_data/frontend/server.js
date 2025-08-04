@@ -43,7 +43,7 @@ class LiftPlan {
         const tr = document.createElement('tr');
         let binaryStr = hex ? hex.toString(2).padStart(8, '0') : "00000000";
         for (let j = 0; j < 8; j++) {
-            tr.appendChild(this.#createCell(binaryStr[j] === '1', this.isDisabled));
+            tr.appendChild(this.#createCell(binaryStr[7 - j] === '1', this.isDisabled));
         }
         let liftplanTable = document.getElementById(this.name);
         liftplanTable.appendChild(tr);
@@ -70,7 +70,7 @@ class LiftPlan {
             let row = liftplanTable.rows[i];
             let binaryStr = '';
             for (let j = 0; j < row.cells.length; j++) {
-                binaryStr += row.cells[j].classList.contains('lifted') ? '1' : '0';
+                binaryStr += row.cells[row.cells.length - 1 - j].classList.contains('lifted') ? '1' : '0';
             }
             let hexVal = parseInt(binaryStr, 2).toString(16).padStart(2, '0');
             resultArray.push(`0x${hexVal}`);
